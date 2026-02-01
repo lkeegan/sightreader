@@ -66,6 +66,10 @@ body {
   justify-items: start;
 }
 
+.controls.hidden {
+  display: none;
+}
+
 .flow-step {
   display: none;
 }

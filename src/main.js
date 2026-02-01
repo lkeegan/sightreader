@@ -15,6 +15,7 @@ import {
 const canvas = document.getElementById("staff");
 const ctx = canvas.getContext("2d");
 const stageEl = document.querySelector(".stage");
+const controlsEl = document.querySelector(".controls");
 
 const trebleBtn = document.getElementById("clef-treble");
 const bassBtn = document.getElementById("clef-bass");
@@ -490,9 +491,11 @@ function setFlow(step) {
   clefStep?.classList.toggle("active", step === "clef");
   keyStep?.classList.toggle("active", step === "key");
   levelStep?.classList.toggle("active", step === "level");
-  stageEl?.classList.toggle("hidden", step !== "session");
-  statusEl?.classList.toggle("hidden", step !== "session");
-  micFallbackBtn?.classList.toggle("hidden", step !== "session");
+  const inSession = step === "session";
+  stageEl?.classList.toggle("hidden", !inSession);
+  statusEl?.classList.toggle("hidden", !inSession);
+  micFallbackBtn?.classList.toggle("hidden", !inSession);
+  controlsEl?.classList.toggle("hidden", inSession);
   sessionActive = step === "session";
 }
 
