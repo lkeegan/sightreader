@@ -36,6 +36,7 @@ const celebrationEl = document.getElementById("celebration");
 const micFallbackBtn = document.getElementById("mic-fallback");
 const milestoneEl = document.getElementById("milestone");
 const milestoneSound = document.getElementById("milestone-sound");
+const warningEl = document.getElementById("warning");
 
 const STAFF = {
   left: 110,
@@ -84,12 +85,19 @@ const MIN_HOLD_MS = 25;
 const MIN_PITCH_HZ = 27.5;
 const MAX_PITCH_HZ = 4186;
 const OCTAVE_TOLERANCE = 0.03;
-const CLARITY_THRESHOLD = 0.9;
+const CLARITY_THRESHOLD = 0.94;
+const RMS_THRESHOLD = 0.02;
 let celebrationUntil = 0;
 let nextNoteAt = 0;
 let matchLock = false;
 let keySignature = "natural";
 let correctCount = 0;
+let incorrectCount = 0;
+let lastWrongMidi = null;
+let lastWrongAt = 0;
+const WRONG_COOLDOWN_MS = 350;
+const WARNING_DURATION_MS = 2000;
+let warningTimeout = null;
 let noteMode = "white";
 
 const KEY_SIGNATURE_POSITIONS = {
@@ -411,6 +419,12 @@ function triggerCelebration() {
   celebrationEl.classList.add("show");
 
   correctCount += 1;
+  incorrectCount = 0;
+  lastWrongMidi = null;
+  lastWrongAt = 0;
+  if (warningEl) {
+    warningEl.classList.remove("show");
+  }
   if (correctCount % 5 === 0) {
     triggerMilestone();
   }
@@ -461,10 +475,22 @@ function detectPitch() {
   if (!analyser) return;
 
   analyser.getFloatTimeDomainData(timeData);
+  let sumSquares = 0;
+  for (let i = 0; i < timeData.length; i += 1) {
+    const sample = timeData[i];
+    sumSquares += sample * sample;
+  }
+  const rms = Math.sqrt(sumSquares / timeData.length);
 
   const [pitch, detectedClarity] = detector.findPitch(timeData, audioContext.sampleRate);
   clarity = detectedClarity;
-  if (!pitch || clarity < CLARITY_THRESHOLD || pitch < MIN_PITCH_HZ || pitch > MAX_PITCH_HZ) {
+  if (
+    !pitch ||
+    clarity < CLARITY_THRESHOLD ||
+    pitch < MIN_PITCH_HZ ||
+    pitch > MAX_PITCH_HZ ||
+    rms < RMS_THRESHOLD
+  ) {
     detectedNote = null;
     detectedFrequency = null;
     pendingNote = null;
@@ -499,7 +525,7 @@ function detectPitch() {
   };
 
   const now = performance.now();
-  if (!pendingNote || pendingNote.name !== candidateNote.name) {
+  if (!pendingNote || pendingNote.midi !== candidateNote.midi) {
     pendingNote = candidateNote;
     pendingSince = now;
   }
@@ -526,8 +552,26 @@ function tick() {
 
   drawStaff();
 
-  if (!matchLock && detectedNote && targetNote && notesMatch(detectedNote, targetNote)) {
-    triggerCelebration();
+  if (!matchLock && detectedNote && targetNote) {
+    if (notesMatch(detectedNote, targetNote)) {
+      triggerCelebration();
+    } else {
+      const midi = Number.isFinite(detectedNote.midi) ? detectedNote.midi : noteNameToMidi(detectedNote.name);
+      if (midi !== null && (midi !== lastWrongMidi || now - lastWrongAt > WRONG_COOLDOWN_MS)) {
+        incorrectCount += 1;
+        lastWrongMidi = midi;
+        lastWrongAt = now;
+        if (incorrectCount > 5 && warningEl) {
+          warningEl.classList.add("show");
+          if (warningTimeout) {
+            clearTimeout(warningTimeout);
+          }
+          warningTimeout = setTimeout(() => {
+            warningEl.classList.remove("show");
+          }, WARNING_DURATION_MS);
+        }
+      }
+    }
   }
 
   requestAnimationFrame(tick);

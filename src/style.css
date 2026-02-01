@@ -306,11 +306,11 @@ canvas {
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle, #f36b4b 0 8px, transparent 9px),
-    radial-gradient(circle, #2fbf71 0 7px, transparent 8px),
-    radial-gradient(circle, #f0d96a 0 6px, transparent 7px),
-    radial-gradient(circle, #70b7ff 0 7px, transparent 8px),
-    radial-gradient(circle, #ff9fd6 0 6px, transparent 7px);
+    radial-gradient(circle, #e24a4a 0 8px, transparent 9px),
+    radial-gradient(circle, #1e6bff 0 7px, transparent 8px),
+    radial-gradient(circle, #ffffff 0 6px, transparent 7px),
+    radial-gradient(circle, #2f89ff 0 7px, transparent 8px),
+    radial-gradient(circle, #f8f8ff 0 6px, transparent 7px);
   background-size: 120px 120px;
   animation: confetti-fall 3s linear infinite;
   opacity: 0.85;
@@ -320,6 +320,30 @@ canvas {
   background-size: 160px 160px;
   animation-duration: 2.6s;
   opacity: 0.6;
+}
+
+.warning-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 16, 24, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 35;
+}
+
+.warning-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.warning-content img {
+  width: clamp(220px, 40vw, 520px);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 20px 26px rgba(0, 0, 0, 0.35));
 }
 
 @keyframes monkey-bounce {
