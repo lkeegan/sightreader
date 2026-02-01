@@ -723,6 +723,9 @@ redoBtn?.addEventListener("click", () => {
   startSession();
 });
 restartBtn?.addEventListener("click", () => {
+  setFlow("clef");
+});
+restartModalBtn?.addEventListener("click", () => {
   endScreenEl?.classList.remove("show");
   setFlow("clef");
 });
