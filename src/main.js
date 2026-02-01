@@ -423,6 +423,7 @@ function triggerCelebration() {
   celebrationEl.classList.add("show");
 
   correctCount += 1;
+  notesCompleted += 1;
   incorrectCount = 0;
   lastWrongMidi = null;
   lastWrongAt = 0;
@@ -432,6 +433,9 @@ function triggerCelebration() {
   }
   if (correctCount % 5 === 0) {
     triggerMilestone();
+  }
+  if (notesCompleted >= NOTES_PER_SESSION) {
+    endSession();
   }
 }
 
