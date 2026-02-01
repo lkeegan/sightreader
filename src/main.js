@@ -114,7 +114,12 @@ const KEY_SIGNATURE_POSITIONS = {
 
 function buildNotePool() {
   const pool = [];
-  for (let index = -6; index <= 12; index += 1) {
+  const baseMin = -6;
+  const baseMax = 12;
+  const octaveSteps = 7;
+  const minIndex = noteMode === "all" ? baseMin - octaveSteps : baseMin;
+  const maxIndex = noteMode === "all" ? baseMax + octaveSteps : baseMax;
+  for (let index = minIndex; index <= maxIndex; index += 1) {
     const baseName = staffIndexToNoteName(index, currentClef.baseNote);
     if (noteMode !== "black") {
       pool.push({ name: baseName, staffIndex: index });
