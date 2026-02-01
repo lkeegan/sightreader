@@ -26,20 +26,23 @@ export function createStaffRenderer({
   clefStyle,
 }: StaffRendererConfig) {
   const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Canvas 2D context unavailable");
+  }
   const staff = { ...staffDefaults };
 
-  const staffYForIndex = (index) => {
+  const staffYForIndex = (index: number) => {
     const baseY = staff.top + staff.lineGap * 4;
     return baseY - index * (staff.lineGap / 2);
   };
 
   const getStaffIndex = (note: Note, clef: typeof clefs.treble) => {
-    if (Number.isFinite(note.staffIndex)) {
+    if (typeof note.staffIndex === "number") {
       return note.staffIndex;
     }
     const key = note.baseName || note.name;
     const computed = key ? noteNameToStaffIndex(key, clef.baseNote) : null;
-    return Number.isFinite(computed) ? computed : 0;
+    return typeof computed === "number" ? computed : 0;
   };
 
   const drawLedgerLines = (index: number, x: number) => {
@@ -166,7 +169,7 @@ export function createStaffRenderer({
     let displayAccidental = note.accidental || null;
 
     if (signature.type === "flat" && accidental === "#") {
-      const flatMap = {
+      const flatMap: Record<string, string> = {
         "C#": "Db",
         "D#": "Eb",
         "F#": "Gb",
@@ -176,7 +179,10 @@ export function createStaffRenderer({
       const mapped = flatMap[`${letter}#`];
       if (mapped) {
         name = `${mapped}${octave}`;
-        staffIndex = noteNameToStaffIndex(name, clef.baseNote);
+        const mappedIndex = noteNameToStaffIndex(name, clef.baseNote);
+        if (typeof mappedIndex === "number") {
+          staffIndex = mappedIndex;
+        }
         displayAccidental = "b";
       }
     }

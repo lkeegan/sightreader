@@ -10,7 +10,7 @@ import {
 const sampleRate = 44100;
 const length = 4096;
 
-function expectDetected(frequency, expectedName) {
+function expectDetected(frequency: number, expectedName: string) {
   const samples = generateHarmonicSamples(frequency, sampleRate, length);
   const detected = detectNoteFromSamples(samples, sampleRate);
   expect(detected?.name).toBe(expectedName);

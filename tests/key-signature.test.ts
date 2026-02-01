@@ -12,7 +12,7 @@ import {
 
 describe("key signature adjustments", () => {
   it("adds a natural sign when the new key signature would sharpen the note", () => {
-    const staffIndex = noteNameToStaffIndex("F4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("F4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "F4", staffIndex },
       "natural",
@@ -21,11 +21,12 @@ describe("key signature adjustments", () => {
     );
     expect(result.accidental).toBe("natural");
     const effective = effectiveNoteName(result, "sharp");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("F4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("F4"));
   });
 
   it("adds a natural sign when switching to a key with G# in it", () => {
-    const staffIndex = noteNameToStaffIndex("G4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("G4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "G4", staffIndex },
       "natural",
@@ -34,11 +35,12 @@ describe("key signature adjustments", () => {
     );
     expect(result.accidental).toBe("natural");
     const effective = effectiveNoteName(result, "sharp3");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("G4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("G4"));
   });
 
   it("removes an explicit sharp when the key signature supplies it", () => {
-    const staffIndex = noteNameToStaffIndex("F4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("F4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "F#4", staffIndex, accidental: "#" },
       "natural",
@@ -48,11 +50,12 @@ describe("key signature adjustments", () => {
     expect(result.accidental).toBeNull();
     expect(result.name).toBe("F4");
     const effective = effectiveNoteName(result, "sharp");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("F#4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("F#4"));
   });
 
   it("removes an explicit flat when the key signature supplies it", () => {
-    const staffIndex = noteNameToStaffIndex("H4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("H4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "Bb4", staffIndex, accidental: "b" },
       "natural",
@@ -62,11 +65,12 @@ describe("key signature adjustments", () => {
     expect(result.accidental).toBeNull();
     expect(result.name).toBe("H4");
     const effective = effectiveNoteName(result, "flat");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("Bb4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("Bb4"));
   });
 
   it("drops a natural sign when switching back to no key signature", () => {
-    const staffIndex = noteNameToStaffIndex("G4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("G4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "G4", staffIndex, accidental: "natural" },
       "sharp3",
@@ -76,11 +80,12 @@ describe("key signature adjustments", () => {
     expect(result.accidental).toBeNull();
     expect(result.name).toBe("G4");
     const effective = effectiveNoteName(result, "natural");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("G4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("G4"));
   });
 
   it("keeps the same pitch when moving from a sharp key to natural", () => {
-    const staffIndex = noteNameToStaffIndex("F4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("F4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "F4", staffIndex },
       "sharp",
@@ -88,12 +93,13 @@ describe("key signature adjustments", () => {
       STAFF_BASE_NOTE,
     );
     const effective = effectiveNoteName(result, "natural");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("F#4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("F#4"));
     expect(result.accidental).toBe("#");
   });
 
   it("keeps the same pitch when moving into a flat key", () => {
-    const staffIndex = noteNameToStaffIndex("H4", STAFF_BASE_NOTE);
+    const staffIndex = noteNameToStaffIndex("H4", STAFF_BASE_NOTE) ?? 0;
     const result = adjustNoteForKeyChange(
       { name: "H4", staffIndex },
       "natural",
@@ -101,7 +107,8 @@ describe("key signature adjustments", () => {
       STAFF_BASE_NOTE,
     );
     const effective = effectiveNoteName(result, "flat");
-    expect(noteNameToMidi(effective)).toBe(noteNameToMidi("H4"));
+    expect(effective).not.toBeNull();
+    expect(noteNameToMidi(effective!)).toBe(noteNameToMidi("H4"));
     expect(result.accidental).toBe("natural");
   });
 

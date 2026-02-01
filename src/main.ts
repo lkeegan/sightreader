@@ -73,9 +73,9 @@ let notePool: Note[] = [];
 
 let audioContext: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
-let timeData: Float32Array | null = null;
+let timeData: Float32Array<ArrayBuffer> | null = null;
 let detector: ReturnType<typeof PitchDetector.forFloat32Array> | null = null;
-const recentPitches = [];
+const recentPitches: number[] = [];
 const PITCH_WINDOW = 5;
 let targetNote: Note | null = null;
 let detectedNote: Note | null = null;
@@ -86,7 +86,7 @@ let pendingSince = 0;
 let celebrationUntil = 0;
 let nextNoteAt = 0;
 let matchLock = false;
-let nextNoteTimer = null;
+let nextNoteTimer: ReturnType<typeof setTimeout> | null = null;
 let inputLocked = false;
 let flyAway: {
   start: number;
@@ -100,7 +100,7 @@ let flyAway: {
 let keySignature: KeySignatureKey = "natural";
 let correctCount = 0;
 let incorrectCount = 0;
-let lastWrongMidi = null;
+let lastWrongMidi: number | null = null;
 let lastWrongAt = 0;
 const WRONG_COOLDOWN_MS = 350;
 let currentLevel = 1;
@@ -135,7 +135,7 @@ function pickRandomNote() {
 }
 
 function drawStaff() {
-  const isMatch = detectedNote && targetNote && notesMatchByMidi(detectedNote, targetNote, keySignature);
+  const isMatch = notesMatchByMidi(detectedNote, targetNote, keySignature);
   const flyOffset = isMatch ? getFlyAwayOffset() : null;
   renderer.draw({
     clef: currentClef,
@@ -178,8 +178,10 @@ function triggerCelebration() {
   const now = performance.now();
   celebrationUntil = now + 700;
   nextNoteAt = now + 1000;
-  dom.celebration.textContent = "Well done!";
-  dom.celebration.classList.add("show");
+  if (dom.celebration) {
+    dom.celebration.textContent = "Well done!";
+    dom.celebration.classList.add("show");
+  }
   startFlyAway();
 
   correctCount += 1;
@@ -232,10 +234,11 @@ function endSession() {
       requestAnimationFrame(burst);
     }
   })();
-  if (dom.redo) {
-    dom.redo.classList.remove("show");
+  const redoButton = dom.redo;
+  if (redoButton) {
+    redoButton.classList.remove("show");
     setTimeout(() => {
-      dom.redo.classList.add("show");
+      redoButton.classList.add("show");
     }, SESSION.confettiMs);
   }
 }
@@ -312,27 +315,34 @@ async function startListening() {
   try {
     dom.micFallback?.classList.add("hidden");
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const AudioCtor =
+      window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) {
+      throw new Error("AudioContext not supported");
+    }
+    audioContext = new AudioCtor();
     const source = audioContext.createMediaStreamSource(stream);
     analyser = audioContext.createAnalyser();
     analyser.fftSize = AUDIO.fftSize;
     analyser.smoothingTimeConstant = AUDIO.smoothing;
     source.connect(analyser);
-    timeData = new Float32Array(analyser.fftSize);
+    timeData = new Float32Array(analyser.fftSize) as Float32Array<ArrayBuffer>;
     detector = PitchDetector.forFloat32Array(analyser.fftSize);
     listening = true;
-    dom.status.textContent = "Listening…";
+    if (dom.status) {
+      dom.status.textContent = "Listening…";
+    }
     dom.micFallback?.classList.add("hidden");
     tick();
   } catch (error) {
-    dom.status.textContent = "Tap to enable microphone";
+    if (dom.status) {
+      dom.status.textContent = "Tap to enable microphone";
+    }
     dom.micFallback?.classList.remove("hidden");
   }
 }
 
 function detectPitch() {
-  if (!analyser) return;
-
   if (!analyser || !timeData || !audioContext || !detector) return;
   analyser.getFloatTimeDomainData(timeData);
   let sumSquares = 0;
@@ -407,7 +417,7 @@ function tick() {
 
   const now = performance.now();
   if (celebrationUntil && now > celebrationUntil) {
-    dom.celebration.classList.remove("show");
+    dom.celebration?.classList.remove("show");
   }
   if (matchLock && now > nextNoteAt) {
     matchLock = false;
@@ -420,7 +430,8 @@ function tick() {
     if (notesMatchByMidi(detectedNote, targetNote, keySignature)) {
       triggerCelebration();
     } else {
-      const midi = Number.isFinite(detectedNote.midi) ? detectedNote.midi : noteNameToMidi(detectedNote.name);
+      const midi =
+        typeof detectedNote.midi === "number" ? detectedNote.midi : noteNameToMidi(detectedNote.name);
       if (midi !== null && (midi !== lastWrongMidi || now - lastWrongAt > WRONG_COOLDOWN_MS)) {
         incorrectCount += 1;
         lastWrongMidi = midi;
@@ -433,13 +444,13 @@ function tick() {
   requestAnimationFrame(tick);
 }
 
-function setClef(nextClef) {
+function setClef(nextClef: typeof CLEFS.treble) {
   currentClef = nextClef;
   setPressed(dom.clefTreble, currentClef === CLEFS.treble);
   setPressed(dom.clefBass, currentClef === CLEFS.bass);
 }
 
-function setLevel(nextLevel) {
+function setLevel(nextLevel: number) {
   currentLevel = nextLevel;
   setPressed(dom.level1, currentLevel === 1);
   setPressed(dom.level2, currentLevel === 2);

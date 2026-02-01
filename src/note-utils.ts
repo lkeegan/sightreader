@@ -11,7 +11,7 @@ export type KeySignatureKey =
   | "flat3"
   | "flat4"
   | "flat5";
-export type Accidental = "#" | "b" | "natural" | null;
+export type Accidental = "#" | "b" | "natural";
 
 export interface BaseNote {
   letterIndex: number;
@@ -20,8 +20,8 @@ export interface BaseNote {
 
 export interface Note {
   name: string;
-  staffIndex?: number;
-  accidental?: Accidental | "";
+  staffIndex?: number | null;
+  accidental?: Accidental | null;
   baseName?: string;
   midi?: number | null;
   letter?: string;
@@ -98,23 +98,31 @@ export function noteNameToStaffIndex(name: string, baseNote: BaseNote = STAFF_BA
   const parsed = parseNoteName(name);
   if (!parsed) return null;
   const normalizedLetter = parsed.letter === "B" ? "H" : parsed.letter;
-  const letterIndex = LETTERS.indexOf(normalizedLetter);
+  const letterIndex = LETTERS.indexOf(normalizedLetter as (typeof LETTERS)[number]);
   if (letterIndex === -1) return null;
   const baseDiatonic = baseNote.octave * 7 + baseNote.letterIndex;
   const targetDiatonic = parsed.octave * 7 + letterIndex;
   return targetDiatonic - baseDiatonic;
 }
 
+function requireStaffIndex(name: string, baseNote: BaseNote = STAFF_BASE_NOTE) {
+  const index = noteNameToStaffIndex(name, baseNote);
+  if (index === null) {
+    throw new Error(`Invalid staff index for ${name}`);
+  }
+  return index;
+}
+
 export function getBaseRangeForClef(clefName: ClefName, baseNote: BaseNote) {
   if (clefName === "treble") {
     return {
-      minIndex: noteNameToStaffIndex("C4", baseNote),
-      maxIndex: noteNameToStaffIndex("A5", baseNote),
+      minIndex: requireStaffIndex("C4", baseNote),
+      maxIndex: requireStaffIndex("A5", baseNote),
     };
   }
   return {
-    minIndex: noteNameToStaffIndex("E3", baseNote),
-    maxIndex: noteNameToStaffIndex("C4", baseNote),
+    minIndex: requireStaffIndex("E3", baseNote),
+    maxIndex: requireStaffIndex("C4", baseNote),
   };
 }
 
@@ -131,7 +139,7 @@ export function getRangeForLevel(clefName: ClefName, baseNote: BaseNote, level: 
 }
 
 export function buildNotePoolForLevel(clefName: ClefName, baseNote: BaseNote, level: number): Note[] {
-  const pool = [];
+  const pool: Note[] = [];
   const { minIndex, maxIndex } = getRangeForLevel(clefName, baseNote, level);
   for (let index = minIndex; index <= maxIndex; index += 1) {
     const baseName = staffIndexToNoteName(index, baseNote);
@@ -167,7 +175,7 @@ export function frequencyToNote(frequency: number): Note {
     name: noteName,
     baseName,
     midi,
-    accidental: name.includes("#") ? "#" : name.includes("b") ? "b" : "",
+    accidental: name.includes("#") ? "#" : name.includes("b") ? "b" : null,
     letter: name.replace("#", "").replace("b", ""),
     octave,
   };
@@ -199,7 +207,7 @@ export function signatureAccidentalForLetter(letter: string, signatureKey: KeySi
   const signature = KEY_SIGNATURES[signatureKey];
   if (!signature || signature.count === 0) return null;
   const order = signature.type === "sharp" ? SHARP_ORDER : FLAT_ORDER;
-  const affected = new Set(order.slice(0, signature.count));
+  const affected = new Set<string>(order.slice(0, signature.count));
   if (!affected.has(letter)) return null;
   return signature.type === "sharp" ? "#" : "b";
 }
@@ -218,13 +226,14 @@ export function effectiveNoteName(note: Note, signatureKey: KeySignatureKey) {
   const signature = KEY_SIGNATURES[signatureKey];
   if (!signature || signature.count === 0) return note.name;
   const order = signature.type === "sharp" ? SHARP_ORDER : FLAT_ORDER;
-  const affected = new Set(order.slice(0, signature.count));
+  const affected = new Set<string>(order.slice(0, signature.count));
   if (!affected.has(letter)) return note.name;
   const applied = signature.type === "sharp" ? "#" : "b";
   return `${letter}${applied}${octave}`;
 }
 
 export function notesMatchByMidi(detected: Note | null, target: Note | null, signatureKey: KeySignatureKey) {
+  if (!detected || !target) return false;
   const targetName = effectiveNoteName(target, signatureKey);
   const targetMidi = targetName ? noteNameToMidi(targetName) : null;
   const detectedMidi = Number.isFinite(detected?.midi)
@@ -241,19 +250,21 @@ export function adjustNoteForKeyChange(
   previousSignature: KeySignatureKey,
   nextSignature: KeySignatureKey,
   baseNote: BaseNote = STAFF_BASE_NOTE,
-) {
+): Note {
   if (!note) return note;
   const staffIndex =
-    Number.isFinite(note.staffIndex) ? note.staffIndex : noteNameToStaffIndex(note.name, baseNote);
-  if (!Number.isFinite(staffIndex)) return note;
-  const previousMidi = noteNameToMidi(effectiveNoteName(note, previousSignature));
+    typeof note.staffIndex === "number" ? note.staffIndex : noteNameToStaffIndex(note.name, baseNote);
+  if (typeof staffIndex !== "number") return note;
+  const previousName = effectiveNoteName(note, previousSignature);
+  if (!previousName) return note;
+  const previousMidi = noteNameToMidi(previousName);
   if (previousMidi === null) return note;
   const baseName = staffIndexToNoteName(staffIndex, baseNote);
   const match = /^([A-GH])(\d+)$/.exec(baseName);
   if (!match) return note;
   const [, letter, octave] = match;
   const flatLetter = letter === "H" ? "B" : letter;
-  const candidates = [
+  const candidates: { acc: Accidental | null; name: string; midi: number | null }[] = [
     { acc: null, name: baseName, midi: noteNameToMidi(baseName) },
     { acc: "#", name: `${letter}#${octave}`, midi: noteNameToMidi(`${letter}#${octave}`) },
     { acc: "b", name: `${flatLetter}b${octave}`, midi: noteNameToMidi(`${flatLetter}b${octave}`) },
@@ -262,7 +273,7 @@ export function adjustNoteForKeyChange(
   const signatureAcc = signatureAccidentalForLetter(letter, nextSignature);
 
   let name = baseName;
-  let accidental = null;
+  let accidental: Accidental | null = null;
   if (chosen.acc === null) {
     accidental = signatureAcc ? "natural" : null;
   } else if (chosen.acc === signatureAcc) {
@@ -275,7 +286,7 @@ export function adjustNoteForKeyChange(
   return { ...note, name, staffIndex, accidental };
 }
 
-function bitReverse(value, bits) {
+function bitReverse(value: number, bits: number) {
   let reversed = 0;
   for (let i = 0; i < bits; i += 1) {
     reversed = (reversed << 1) | (value & 1);
