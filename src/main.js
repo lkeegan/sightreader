@@ -123,8 +123,16 @@ const KEY_SIGNATURE_POSITIONS = {
 
 function buildNotePool() {
   const pool = [];
-  const baseMin = -6;
-  const baseMax = 12;
+  let baseMin = -6;
+  let baseMax = 12;
+  if (currentClef === CLEFS.treble) {
+    const minIndex = noteNameToStaffIndex("C4", currentClef.baseNote);
+    const maxIndex = noteNameToStaffIndex("A5", currentClef.baseNote);
+    if (Number.isFinite(minIndex) && Number.isFinite(maxIndex)) {
+      baseMin = minIndex;
+      baseMax = maxIndex;
+    }
+  }
   const octaveSteps = 7;
   const minIndex = currentLevel >= 2 ? baseMin - octaveSteps : baseMin;
   const maxIndex = currentLevel >= 2 ? baseMax + octaveSteps : baseMax;
