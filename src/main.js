@@ -443,7 +443,12 @@ function triggerCelebration() {
   lastWrongMidi = null;
   lastWrongAt = 0;
   if (notesCompleted >= NOTES_PER_SESSION) {
-    endSession();
+    if (nextNoteTimer) {
+      clearTimeout(nextNoteTimer);
+    }
+    nextNoteTimer = setTimeout(() => {
+      endSession();
+    }, 1000);
   } else {
     if (nextNoteTimer) {
       clearTimeout(nextNoteTimer);
