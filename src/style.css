@@ -353,6 +353,37 @@ canvas {
   filter: drop-shadow(0 20px 26px rgba(0, 0, 0, 0.35));
 }
 
+.end-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 45;
+}
+
+.end-overlay.show {
+  display: grid;
+}
+
+.end-content {
+  display: grid;
+  gap: 18px;
+  text-align: center;
+}
+
+.end-title {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 800;
+}
+
+.end-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 16px;
+  justify-items: center;
+}
+
 @keyframes monkey-bounce {
   0% {
     transform: translateY(60px) scale(0.8);
