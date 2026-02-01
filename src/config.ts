@@ -41,14 +41,14 @@ export const CLEFS: { treble: ClefDefinition; bass: ClefDefinition } = {
     symbol: "𝄞",
     baseNote: { letterIndex: 2, octave: 4 }, // E4 on the bottom line.
     symbolIndex: 2,
-    symbolOffset: 0.6,
+    symbolOffset: 0.18,
   },
   bass: {
     name: "Bass",
     symbol: "𝄢",
     baseNote: { letterIndex: 4, octave: 2 }, // G2 on the bottom line.
     symbolIndex: 6,
-    symbolOffset: -1.55,
+    symbolOffset: -1.60,
   },
 };
 

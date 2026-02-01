@@ -133,12 +133,12 @@ export function createStaffRenderer({
     ctx.stroke();
 
     if (note.accidental) {
-      ctx.font = note.accidental === "b" ? "57px serif" : "42px serif";
+      ctx.font = "72px \"Noto Music\", serif";
       ctx.fillStyle = color;
       const symbol =
-        note.accidental === "b" ? "♭" : note.accidental === "natural" ? "♮" : "#";
-      const xOffset = note.accidental === "b" ? 34 : 34;
-      const yOffset = note.accidental === "b" ? 6 : 14;
+        note.accidental === "b" ? "♭" : note.accidental === "natural" ? "♮" : "♯";
+      const xOffset = 34;
+      const yOffset = note.accidental === "b" ? 8 : 14;
       const adjustedY = note.accidental === "natural" ? yOffset - staff.lineGap * 0.5 : yOffset;
       ctx.fillText(symbol, -xOffset, adjustedY);
     }
@@ -151,14 +151,14 @@ export function createStaffRenderer({
     const positions =
       clef === clefs.treble ? keySignaturePositions.treble : keySignaturePositions.bass;
     const indices = signature.type === "sharp" ? positions.sharps : positions.flats;
-    const xBase = staff.left + 36;
+    const xBase = staff.left + 42;
     ctx.fillStyle = "#1c1b1f";
     for (let i = 0; i < signature.count; i += 1) {
       const index = indices[i];
       const x = xBase + i * 22;
       const y = staffYForIndex(index);
       const yOffset = signature.type === "sharp" ? 12 : 6;
-      ctx.font = signature.type === "flat" ? "57px serif" : "42px serif";
+      ctx.font = "72px \"Noto Music\", serif";
       ctx.fillText(signature.type === "sharp" ? "♯" : "♭", x, y + yOffset);
     }
   };
@@ -247,7 +247,7 @@ export function createStaffRenderer({
     }
 
     const clefX = staff.left - clefStyle.lineExtension + 12;
-    ctx.font = "96px serif";
+    ctx.font = "72px \"Noto Music\", serif";
     ctx.fillStyle = "#1c1b1f";
     ctx.textBaseline = "middle";
     ctx.fillText(
