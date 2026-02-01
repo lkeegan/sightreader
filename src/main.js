@@ -15,37 +15,40 @@ import {
   staffIndexToNoteName,
 } from "./note-utils.js";
 
-const canvas = document.getElementById("staff");
-const ctx = canvas.getContext("2d");
-const stageEl = document.querySelector(".stage");
-const controlsEl = document.querySelector(".controls");
-const headerEl = document.getElementById("flow-header");
+const dom = {
+  canvas: document.getElementById("staff"),
+  stage: document.querySelector(".stage"),
+  controls: document.querySelector(".controls"),
+  header: document.getElementById("flow-header"),
+  clefTreble: document.getElementById("clef-treble"),
+  clefBass: document.getElementById("clef-bass"),
+  sigSharp: document.getElementById("sig-sharp"),
+  sigSharp2: document.getElementById("sig-sharp-2"),
+  sigFlat: document.getElementById("sig-flat"),
+  sigFlat2: document.getElementById("sig-flat-2"),
+  sigNatural: document.getElementById("sig-natural"),
+  level1: document.getElementById("level-1"),
+  level2: document.getElementById("level-2"),
+  level3: document.getElementById("level-3"),
+  status: document.getElementById("status"),
+  celebration: document.getElementById("celebration"),
+  micFallback: document.getElementById("mic-fallback"),
+  confettiCanvas: document.getElementById("confetti-canvas"),
+  endScreen: document.getElementById("end-screen"),
+  redo: document.getElementById("redo-session"),
+  restart: document.getElementById("restart-flow"),
+  sessionBar: document.getElementById("session-bar"),
+  progressLabel: document.getElementById("progress-label"),
+  progressFill: document.getElementById("progress-fill"),
+  stepClef: document.querySelector(".clef-step"),
+  stepKey: document.querySelector(".signature-toggle"),
+  stepLevel: document.querySelector(".level-toggle"),
+};
 
-const trebleBtn = document.getElementById("clef-treble");
-const bassBtn = document.getElementById("clef-bass");
-const sigSharpBtn = document.getElementById("sig-sharp");
-const sigSharp2Btn = document.getElementById("sig-sharp-2");
-const sigFlatBtn = document.getElementById("sig-flat");
-const sigFlat2Btn = document.getElementById("sig-flat-2");
-const sigNaturalBtn = document.getElementById("sig-natural");
-const level1Btn = document.getElementById("level-1");
-const level2Btn = document.getElementById("level-2");
-const level3Btn = document.getElementById("level-3");
-const statusEl = document.getElementById("status");
-const celebrationEl = document.getElementById("celebration");
-const micFallbackBtn = document.getElementById("mic-fallback");
-const confettiCanvas = document.getElementById("confetti-canvas");
-const confettiInstance = confettiCanvas ? confetti.create(confettiCanvas, { resize: true, useWorker: true }) : confetti;
-const warningEl = null;
-const endScreenEl = document.getElementById("end-screen");
-const redoBtn = document.getElementById("redo-session");
-const restartBtn = document.getElementById("restart-flow");
-const sessionBarEl = document.getElementById("session-bar");
-const progressLabelEl = document.getElementById("progress-label");
-const progressFillEl = document.getElementById("progress-fill");
-const clefStep = document.querySelector(".clef-step");
-const keyStep = document.querySelector(".signature-toggle");
-const levelStep = document.querySelector(".level-toggle");
+const ctx = dom.canvas.getContext("2d");
+const confettiInstance = dom.confettiCanvas
+  ? confetti.create(dom.confettiCanvas, { resize: true, useWorker: true })
+  : confetti;
 
 const STAFF = {
   left: 110,
