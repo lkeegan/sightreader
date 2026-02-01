@@ -2,12 +2,15 @@ import "./style.css";
 import confetti from "canvas-confetti";
 import { PitchDetector } from "pitchy";
 import {
+  DEFAULT_SESSION_NOTES,
   KEY_SIGNATURES,
   adjustNoteForKeyChange,
+  buildNotePoolForLevel,
   effectiveNoteName,
   frequencyToNote,
   noteNameToMidi,
   noteNameToStaffIndex,
+  shouldEndSession,
   signatureAccidentalForLetter,
   staffIndexToNoteName,
 } from "./note-utils.js";
@@ -106,7 +109,7 @@ let lastWrongAt = 0;
 const WRONG_COOLDOWN_MS = 350;
 let currentLevel = 1;
 let notesCompleted = 0;
-const NOTES_PER_SESSION = 10;
+const NOTES_PER_SESSION = DEFAULT_SESSION_NOTES;
 let sessionActive = false;
 
 const KEY_SIGNATURE_POSITIONS = {
@@ -122,43 +125,8 @@ const KEY_SIGNATURE_POSITIONS = {
 
 
 function buildNotePool() {
-  const pool = [];
-  let baseMin = -6;
-  let baseMax = 12;
-  if (currentClef === CLEFS.treble) {
-    const minIndex = noteNameToStaffIndex("C4", currentClef.baseNote);
-    const maxIndex = noteNameToStaffIndex("A5", currentClef.baseNote);
-    if (Number.isFinite(minIndex) && Number.isFinite(maxIndex)) {
-      baseMin = minIndex;
-      baseMax = maxIndex;
-    }
-  } else {
-    const minIndex = noteNameToStaffIndex("E3", currentClef.baseNote);
-    const maxIndex = noteNameToStaffIndex("C4", currentClef.baseNote);
-    if (Number.isFinite(minIndex) && Number.isFinite(maxIndex)) {
-      baseMin = minIndex;
-      baseMax = maxIndex;
-    }
-  }
-  const octaveSteps = 7;
-  const minIndex = currentLevel >= 3 ? baseMin - octaveSteps : baseMin;
-  const maxIndex = currentLevel >= 3 ? baseMax + octaveSteps : baseMax;
-  for (let index = minIndex; index <= maxIndex; index += 1) {
-    const baseName = staffIndexToNoteName(index, currentClef.baseNote);
-    pool.push({ name: baseName, staffIndex: index });
-
-    if (currentLevel < 2) continue;
-    const match = /^([A-GH])(\d+)$/.exec(baseName);
-    if (!match) continue;
-    const [, letter, octave] = match;
-    const sharpName = `${letter}#${octave}`;
-    pool.push({ name: sharpName, staffIndex: index, accidental: "#" });
-
-    const flatLetter = letter === "H" ? "B" : letter;
-    const flatName = `${flatLetter}b${octave}`;
-    pool.push({ name: flatName, staffIndex: index, accidental: "b" });
-  }
-  return pool;
+  const clefName = currentClef === CLEFS.treble ? "treble" : "bass";
+  return buildNotePoolForLevel(clefName, currentClef.baseNote, currentLevel);
 }
 
 function resizeCanvas() {
@@ -442,7 +410,7 @@ function triggerCelebration() {
   incorrectCount = 0;
   lastWrongMidi = null;
   lastWrongAt = 0;
-  if (notesCompleted >= NOTES_PER_SESSION) {
+  if (shouldEndSession(notesCompleted, NOTES_PER_SESSION)) {
     if (nextNoteTimer) {
       clearTimeout(nextNoteTimer);
     }
