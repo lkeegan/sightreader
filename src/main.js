@@ -41,17 +41,14 @@ const dom = {
   progressLabel: document.getElementById("progress-label"),
   progressFill: document.getElementById("progress-fill"),
   stepClef: document.querySelector(".clef-step"),
-  stepKey: document.querySelector(".signature-toggle"),
-  stepLevel: document.querySelector(".level-toggle"),
+  stepKey: document.querySelector(".key-step"),
+  stepLevel: document.querySelector(".level-step"),
 };
 
 const ctx = dom.canvas.getContext("2d");
 const confettiInstance = dom.confettiCanvas
   ? confetti.create(dom.confettiCanvas, { resize: true, useWorker: true })
   : confetti;
-
-const canvas = dom.canvas;
-const stageEl = dom.stage;
 
 const STAFF = {
   left: 110,
@@ -168,11 +165,11 @@ function buildNotePool() {
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio || 1;
-  const { width } = canvas.getBoundingClientRect();
-  const stageHeight = stageEl ? stageEl.getBoundingClientRect().height : 420;
+  const { width } = dom.canvas.getBoundingClientRect();
+  const stageHeight = dom.stage ? dom.stage.getBoundingClientRect().height : 420;
   const desiredHeight = Math.max(420, stageHeight - 24);
-  canvas.width = Math.floor(width * ratio);
-  canvas.height = Math.floor(desiredHeight * ratio);
+  dom.canvas.width = Math.floor(width * ratio);
+  dom.canvas.height = Math.floor(desiredHeight * ratio);
   ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
   const viewWidth = width;
   const viewHeight = desiredHeight;
@@ -186,7 +183,6 @@ function resizeCanvas() {
 function pickRandomNote() {
   const pick = notePool[Math.floor(Math.random() * notePool.length)];
   targetNote = { ...pick };
-  warningShownForNote = false;
   drawStaff();
 }
 
@@ -199,7 +195,6 @@ function setTargetByIndex(index) {
   const name = staffIndexToNoteName(index, currentClef.baseNote);
   const note = notePool.find((entry) => entry.name === name) || { name, staffIndex: index };
   targetNote = { ...note };
-  warningShownForNote = false;
   drawStaff();
 }
 
@@ -213,12 +208,12 @@ function getStaffIndex(note) {
 }
 
 function drawStaff() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
   ctx.save();
   ctx.scale(1, 1);
 
   ctx.fillStyle = "#fff7e8";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
 
   ctx.strokeStyle = "#1c1b1f";
   ctx.lineWidth = 2;
@@ -309,16 +304,11 @@ function drawKeySignature() {
 function setKeySignature(nextSignature) {
   const previousSignature = keySignature;
   keySignature = nextSignature;
-  sigNaturalBtn.classList.toggle("active", keySignature === "natural");
-  sigNaturalBtn.setAttribute("aria-pressed", keySignature === "natural");
-  sigSharpBtn.classList.toggle("active", keySignature === "sharp");
-  sigSharpBtn.setAttribute("aria-pressed", keySignature === "sharp");
-  sigSharp2Btn.classList.toggle("active", keySignature === "sharp2");
-  sigSharp2Btn.setAttribute("aria-pressed", keySignature === "sharp2");
-  sigFlatBtn.classList.toggle("active", keySignature === "flat");
-  sigFlatBtn.setAttribute("aria-pressed", keySignature === "flat");
-  sigFlat2Btn.classList.toggle("active", keySignature === "flat2");
-  sigFlat2Btn.setAttribute("aria-pressed", keySignature === "flat2");
+  setPressed(dom.sigNatural, keySignature === "natural");
+  setPressed(dom.sigSharp, keySignature === "sharp");
+  setPressed(dom.sigSharp2, keySignature === "sharp2");
+  setPressed(dom.sigFlat, keySignature === "flat");
+  setPressed(dom.sigFlat2, keySignature === "flat2");
   if (targetNote) {
     targetNote = adjustNoteForKeyChange(targetNote, previousSignature, keySignature, currentClef.baseNote);
   }
@@ -438,8 +428,8 @@ function triggerCelebration() {
   nextNoteAt = now + 1000;
   matchLock = true;
   inputLocked = true;
-  celebrationEl.textContent = "Well done!";
-  celebrationEl.classList.add("show");
+  dom.celebration.textContent = "Well done!";
+  dom.celebration.classList.add("show");
 
   correctCount += 1;
   notesCompleted += 1;
@@ -453,7 +443,7 @@ function triggerCelebration() {
     }
     nextNoteTimer = setTimeout(() => {
       endSession();
-    }, 1000);
+    }, SESSION.nextNoteDelayMs);
   } else {
     if (nextNoteTimer) {
       clearTimeout(nextNoteTimer);
@@ -463,7 +453,7 @@ function triggerCelebration() {
       celebrationUntil = 0;
       inputLocked = false;
       pickRandomNote();
-    }, 1000);
+    }, SESSION.nextNoteDelayMs);
   }
 }
 
@@ -471,10 +461,8 @@ function endSession() {
   sessionActive = false;
   matchLock = true;
   inputLocked = true;
-  if (endScreenEl) {
-    endScreenEl.classList.add("show");
-  }
-  const end = performance.now() + 3000;
+  dom.endScreen?.classList.add("show");
+  const end = performance.now() + SESSION.confettiMs;
   const confettiColors = ["#ff3b3b", "#1f7bff", "#ffffff"];
   (function burst() {
     confettiInstance({
@@ -491,11 +479,11 @@ function endSession() {
       requestAnimationFrame(burst);
     }
   })();
-  if (redoBtn) {
-    redoBtn.classList.remove("show");
+  if (dom.redo) {
+    dom.redo.classList.remove("show");
     setTimeout(() => {
-      redoBtn.classList.add("show");
-    }, 3000);
+      dom.redo.classList.add("show");
+    }, SESSION.confettiMs);
   }
 }
 
@@ -512,23 +500,23 @@ function startSession() {
 }
 
 function updateProgress() {
-  if (!progressLabelEl || !progressFillEl) return;
-  progressLabelEl.textContent = `${notesCompleted} / ${NOTES_PER_SESSION}`;
-  progressFillEl.style.width = `${(notesCompleted / NOTES_PER_SESSION) * 100}%`;
+  if (!dom.progressLabel || !dom.progressFill) return;
+  dom.progressLabel.textContent = `${notesCompleted} / ${NOTES_PER_SESSION}`;
+  dom.progressFill.style.width = `${(notesCompleted / NOTES_PER_SESSION) * 100}%`;
 }
 
 function setFlow(step) {
-  clefStep?.classList.toggle("active", step === "clef");
-  keyStep?.classList.toggle("active", step === "key");
-  levelStep?.classList.toggle("active", step === "level");
+  dom.stepClef?.classList.toggle("active", step === "clef");
+  dom.stepKey?.classList.toggle("active", step === "key");
+  dom.stepLevel?.classList.toggle("active", step === "level");
   const inSession = step === "session";
-  stageEl?.classList.toggle("hidden", !inSession);
-  sessionBarEl?.classList.toggle("hidden", !inSession);
-  statusEl?.classList.toggle("hidden", !inSession);
-  micFallbackBtn?.classList.toggle("hidden", !inSession);
-  controlsEl?.classList.toggle("hidden", inSession);
-  controlsEl?.classList.toggle("clef-only", step !== "session");
-  headerEl?.classList.toggle("hidden", inSession);
+  setHidden(dom.stage, !inSession);
+  setHidden(dom.sessionBar, !inSession);
+  setHidden(dom.status, !inSession);
+  setHidden(dom.micFallback, !inSession);
+  setHidden(dom.controls, inSession);
+  dom.controls?.classList.toggle("clef-only", step !== "session");
+  setHidden(dom.header, inSession);
   sessionActive = step === "session";
   if (inSession) {
     requestAnimationFrame(resizeCanvas);
@@ -541,26 +529,22 @@ async function startListening() {
   }
 
   try {
-    if (micFallbackBtn) {
-      micFallbackBtn.classList.add("hidden");
-    }
+    dom.micFallback?.classList.add("hidden");
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const source = audioContext.createMediaStreamSource(stream);
     analyser = audioContext.createAnalyser();
-    analyser.fftSize = 4096;
-    analyser.smoothingTimeConstant = 0.8;
+    analyser.fftSize = AUDIO.fftSize;
+    analyser.smoothingTimeConstant = AUDIO.smoothing;
     source.connect(analyser);
     timeData = new Float32Array(analyser.fftSize);
     detector = PitchDetector.forFloat32Array(analyser.fftSize);
     listening = true;
-    statusEl.textContent = "Listening…";
+    dom.status.textContent = "Listening…";
     tick();
   } catch (error) {
-    statusEl.textContent = "Tap to enable microphone";
-    if (micFallbackBtn) {
-      micFallbackBtn.classList.remove("hidden");
-    }
+    dom.status.textContent = "Tap to enable microphone";
+    dom.micFallback?.classList.remove("hidden");
   }
 }
 
@@ -641,7 +625,7 @@ function tick() {
 
   const now = performance.now();
   if (celebrationUntil && now > celebrationUntil) {
-    celebrationEl.classList.remove("show");
+    dom.celebration.classList.remove("show");
   }
   if (matchLock && now > nextNoteAt) {
     matchLock = false;
@@ -669,73 +653,68 @@ function tick() {
 
 function setClef(nextClef) {
   currentClef = nextClef;
-  trebleBtn.classList.toggle("active", currentClef === CLEFS.treble);
-  trebleBtn.setAttribute("aria-pressed", currentClef === CLEFS.treble);
-  bassBtn.classList.toggle("active", currentClef === CLEFS.bass);
-  bassBtn.setAttribute("aria-pressed", currentClef === CLEFS.bass);
+  setPressed(dom.clefTreble, currentClef === CLEFS.treble);
+  setPressed(dom.clefBass, currentClef === CLEFS.bass);
 }
 
 function setLevel(nextLevel) {
   currentLevel = nextLevel;
-  level1Btn.classList.toggle("active", currentLevel === 1);
-  level1Btn.setAttribute("aria-pressed", currentLevel === 1);
-  level2Btn.classList.toggle("active", currentLevel === 2);
-  level2Btn.setAttribute("aria-pressed", currentLevel === 2);
-  level3Btn.classList.toggle("active", currentLevel === 3);
-  level3Btn.setAttribute("aria-pressed", currentLevel === 3);
+  setPressed(dom.level1, currentLevel === 1);
+  setPressed(dom.level2, currentLevel === 2);
+  setPressed(dom.level3, currentLevel === 3);
 }
 
-trebleBtn.addEventListener("click", () => {
+dom.clefTreble?.addEventListener("click", () => {
   setClef(CLEFS.treble);
   setFlow("key");
 });
-bassBtn.addEventListener("click", () => {
+dom.clefBass?.addEventListener("click", () => {
   setClef(CLEFS.bass);
   setFlow("key");
 });
-sigSharpBtn.addEventListener("click", () => {
+dom.sigSharp?.addEventListener("click", () => {
   setKeySignature("sharp");
   setFlow("level");
 });
-sigSharp2Btn.addEventListener("click", () => {
+dom.sigSharp2?.addEventListener("click", () => {
   setKeySignature("sharp2");
   setFlow("level");
 });
-sigFlatBtn.addEventListener("click", () => {
+dom.sigFlat?.addEventListener("click", () => {
   setKeySignature("flat");
   setFlow("level");
 });
-sigFlat2Btn.addEventListener("click", () => {
+dom.sigFlat2?.addEventListener("click", () => {
   setKeySignature("flat2");
   setFlow("level");
 });
-sigNaturalBtn.addEventListener("click", () => {
+dom.sigNatural?.addEventListener("click", () => {
   setKeySignature("natural");
   setFlow("level");
 });
-level1Btn.addEventListener("click", () => {
+dom.level1?.addEventListener("click", () => {
   setLevel(1);
   setFlow("session");
   startSession();
 });
-level2Btn.addEventListener("click", () => {
+dom.level2?.addEventListener("click", () => {
   setLevel(2);
   setFlow("session");
   startSession();
 });
-level3Btn.addEventListener("click", () => {
+dom.level3?.addEventListener("click", () => {
   setLevel(3);
   setFlow("session");
   startSession();
 });
-restartBtn?.addEventListener("click", () => {
+dom.restart?.addEventListener("click", () => {
   setFlow("clef");
 });
-redoBtn?.addEventListener("click", () => {
-  endScreenEl?.classList.remove("show");
+dom.redo?.addEventListener("click", () => {
+  dom.endScreen?.classList.remove("show");
   setFlow("clef");
 });
-micFallbackBtn.addEventListener("click", startListening);
+dom.micFallback?.addEventListener("click", startListening);
 window.addEventListener("resize", resizeCanvas);
 
 resizeCanvas();

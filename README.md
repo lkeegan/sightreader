@@ -1,6 +1,6 @@
-# Sightreader
+# Sebi's Sight-Reader
 
-A kid-friendly sight-reading web app that listens for notes and gives instant feedback.
+A kid-friendly music sight-reading web app that listens for notes and gives instant feedback.
 
 ## Run locally
 
