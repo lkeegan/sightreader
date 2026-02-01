@@ -133,12 +133,6 @@ let detectedFrequency = null;
 let listening = false;
 let pendingNote = null;
 let pendingSince = 0;
-const MIN_HOLD_MS = 25;
-const MIN_PITCH_HZ = 27.5;
-const MAX_PITCH_HZ = 4186;
-const OCTAVE_TOLERANCE = 0.03;
-const CLARITY_THRESHOLD = 0.9;
-const RMS_THRESHOLD = 0.015;
 let celebrationUntil = 0;
 let nextNoteAt = 0;
 let matchLock = false;
@@ -152,7 +146,7 @@ let lastWrongAt = 0;
 const WRONG_COOLDOWN_MS = 350;
 let currentLevel = 1;
 let notesCompleted = 0;
-const NOTES_PER_SESSION = DEFAULT_SESSION_NOTES;
+const NOTES_PER_SESSION = SESSION.notesPerSession;
 let sessionActive = false;
 
 const KEY_SIGNATURE_POSITIONS = {
@@ -585,10 +579,10 @@ function detectPitch() {
   clarity = detectedClarity;
   if (
     !pitch ||
-    clarity < CLARITY_THRESHOLD ||
-    pitch < MIN_PITCH_HZ ||
-    pitch > MAX_PITCH_HZ ||
-    rms < RMS_THRESHOLD
+    clarity < AUDIO.clarityThreshold ||
+    pitch < AUDIO.minPitchHz ||
+    pitch > AUDIO.maxPitchHz ||
+    rms < AUDIO.rmsThreshold
   ) {
     detectedNote = null;
     detectedFrequency = null;
@@ -600,9 +594,9 @@ function detectPitch() {
 
   let adjustedPitch = pitch;
   if (detectedFrequency) {
-    if (Math.abs(adjustedPitch * 2 - detectedFrequency) / detectedFrequency < OCTAVE_TOLERANCE) {
+    if (Math.abs(adjustedPitch * 2 - detectedFrequency) / detectedFrequency < AUDIO.octaveTolerance) {
       adjustedPitch *= 2;
-    } else if (Math.abs(adjustedPitch / 2 - detectedFrequency) / detectedFrequency < OCTAVE_TOLERANCE) {
+    } else if (Math.abs(adjustedPitch / 2 - detectedFrequency) / detectedFrequency < AUDIO.octaveTolerance) {
       adjustedPitch /= 2;
     }
   }
@@ -629,7 +623,7 @@ function detectPitch() {
     pendingSince = now;
   }
 
-  if (pendingNote && now - pendingSince >= MIN_HOLD_MS) {
+  if (pendingNote && now - pendingSince >= AUDIO.minHoldMs) {
     detectedNote = pendingNote;
   }
 }
