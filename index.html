@@ -65,9 +65,6 @@
       <main class="stage hidden">
         <canvas id="staff" width="900" height="420" aria-label="Music staff"></canvas>
         <div class="celebration" id="celebration" aria-live="polite"></div>
-        <audio id="milestone-sound" preload="auto">
-          <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQgAAAAA" type="audio/wav" />
-        </audio>
       </main>
 
       <footer class="session-bar hidden" id="session-bar">
@@ -82,28 +79,14 @@
 
     </div>
 
-    <div class="milestone-overlay" id="milestone" aria-live="polite">
-      <canvas id="confetti-canvas" aria-hidden="true"></canvas>
-      <div class="milestone-content">
-        <div class="milestone-monkey">
-          <img src="/assets/monkey-celebrate.png" alt="Celebration monkey" />
-        </div>
-        <div class="milestone-text">Fantastic!</div>
-      </div>
-    </div>
-
-      <div class="warning-overlay" id="warning" aria-live="polite">
-      <div class="warning-content">
-        <img src="/assets/monkey-ears.png" alt="Monkey covering ears" />
-      </div>
-    </div>
-
     <div class="end-overlay" id="end-screen" aria-live="polite">
+      <canvas id="confetti-canvas" aria-hidden="true"></canvas>
       <div class="end-content">
-        <div class="end-title">Great job!</div>
         <div class="end-actions">
-          <button id="redo-session" class="primary">Redo same</button>
-          <button id="restart-flow-modal" class="ghost">Start again</button>
+          <div class="end-monkey">
+            <img src="/assets/monkey-celebrate.png" alt="Happy monkey" />
+          </div>
+          <button id="redo-session" class="primary">Play again</button>
         </div>
       </div>
     </div>
