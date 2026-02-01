@@ -1,6 +1,6 @@
 {
   "name": "Sebi's Sight-Reader",
-  "short_name": "Sight-Reader",
+  "short_name": "Sebi's Sight-Reader",
   "description": "A sight-reading game for musical notes with microphone input.",
   "lang": "en",
   "categories": ["education", "music", "kids"],

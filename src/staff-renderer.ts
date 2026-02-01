@@ -45,31 +45,50 @@ export function createStaffRenderer({
     return typeof computed === "number" ? computed : 0;
   };
 
-  const drawLedgerLines = (index: number, x: number) => {
+  const drawLedgerLines = (
+    index: number,
+    x: number,
+    {
+      color = "#1c1b1f",
+      offset = null,
+      scale = 1,
+      alpha = 1,
+    }: {
+      color?: string;
+      offset?: { x: number; y: number } | null;
+      scale?: number;
+      alpha?: number;
+    } = {},
+  ) => {
     const lowestLine = 0;
     const highestLine = 8;
-    ctx.strokeStyle = "#1c1b1f";
-    ctx.lineWidth = 2;
+    const dx = offset?.x ?? 0;
+    const dy = offset?.y ?? 0;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2 * scale;
 
     if (index < lowestLine) {
       for (let step = -2; step >= index; step -= 2) {
-        const y = staffYForIndex(step);
+        const y = staffYForIndex(step) + dy;
         ctx.beginPath();
-        ctx.moveTo(x - 18, y);
-        ctx.lineTo(x + 18, y);
+        ctx.moveTo(x + dx - 18 * scale, y);
+        ctx.lineTo(x + dx + 18 * scale, y);
         ctx.stroke();
       }
     }
 
     if (index > highestLine) {
       for (let step = 10; step <= index; step += 2) {
-        const y = staffYForIndex(step);
+        const y = staffYForIndex(step) + dy;
         ctx.beginPath();
-        ctx.moveTo(x - 18, y);
-        ctx.lineTo(x + 18, y);
+        ctx.moveTo(x + dx - 18 * scale, y);
+        ctx.lineTo(x + dx + 18 * scale, y);
         ctx.stroke();
       }
     }
+    ctx.restore();
   };
 
   const drawNote = (
@@ -103,7 +122,12 @@ export function createStaffRenderer({
       (offset ? offset.y : 0);
     const stemDown = index >= 4;
 
-    drawLedgerLines(index, x);
+    drawLedgerLines(index, x, {
+      color,
+      offset,
+      scale,
+      alpha,
+    });
 
     ctx.save();
     ctx.globalAlpha = alpha;

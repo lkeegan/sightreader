@@ -1,4 +1,4 @@
-const CACHE_NAME = "sightreader-v1";
+const CACHE_NAME = "sebis-sight-reader-v1";
 const BASE_URL = new URL("./", self.registration.scope).pathname;
 const OFFLINE_URLS = [`${BASE_URL}`, `${BASE_URL}index.html`, `${BASE_URL}manifest.webmanifest`];
 
