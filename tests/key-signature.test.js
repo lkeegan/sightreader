@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   adjustNoteForKeyChange,
   effectiveNoteName,
+  shouldEndSession,
   noteNameToMidi,
   noteNameToStaffIndex,
   STAFF_BASE_NOTE,
@@ -80,5 +81,10 @@ describe("key signature adjustments", () => {
     expect(noteNameToMidi("Db4")).toBe(noteNameToMidi("C#4"));
     expect(noteNameToMidi("Eb4")).toBe(noteNameToMidi("D#4"));
     expect(noteNameToMidi("Gb3")).toBe(noteNameToMidi("F#3"));
+  });
+
+  it("ends a session after the configured number of notes", () => {
+    expect(shouldEndSession(9, 10)).toBe(false);
+    expect(shouldEndSession(10, 10)).toBe(true);
   });
 });
