@@ -157,12 +157,12 @@ body {
 }
 
 .sig-stack.sharp {
-  font-size: clamp(2.4rem, 4.8vw, 3.6rem);
+  font-size: clamp(1.8rem, 3.6vw, 2.7rem);
   transform: translateX(-0.4em) scale(1);
 }
 
 .sig-stack.flat {
-  font-size: clamp(2.6rem, 5.2vw, 3.8rem);
+  font-size: clamp(1.95rem, 3.9vw, 2.85rem);
   transform: translateX(-0.5em) scale(1);
 }
 
