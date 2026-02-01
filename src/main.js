@@ -462,6 +462,12 @@ function endSession() {
       requestAnimationFrame(burst);
     }
   })();
+  if (redoBtn) {
+    redoBtn.classList.remove("show");
+    setTimeout(() => {
+      redoBtn.classList.add("show");
+    }, 3000);
+  }
 }
 
 function startSession() {
