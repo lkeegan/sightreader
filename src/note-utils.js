@@ -17,6 +17,8 @@ export const KEY_SIGNATURES = {
   flat5: { type: "flat", count: 5 },
 };
 
+export const DEFAULT_SESSION_NOTES = 10;
+
 export function parseNoteName(name) {
   const match = /^([A-GHB])([#b]?)(-?\d+)$/.exec(name);
   if (!match) {
@@ -71,6 +73,52 @@ export function noteNameToStaffIndex(name, baseNote = STAFF_BASE_NOTE) {
   const baseDiatonic = baseNote.octave * 7 + baseNote.letterIndex;
   const targetDiatonic = parsed.octave * 7 + letterIndex;
   return targetDiatonic - baseDiatonic;
+}
+
+export function getBaseRangeForClef(clefName, baseNote) {
+  if (clefName === "treble") {
+    return {
+      minIndex: noteNameToStaffIndex("C4", baseNote),
+      maxIndex: noteNameToStaffIndex("A5", baseNote),
+    };
+  }
+  return {
+    minIndex: noteNameToStaffIndex("E3", baseNote),
+    maxIndex: noteNameToStaffIndex("C4", baseNote),
+  };
+}
+
+export function getRangeForLevel(clefName, baseNote, level) {
+  const base = getBaseRangeForClef(clefName, baseNote);
+  const octaveSteps = 7;
+  if (level >= 3) {
+    return {
+      minIndex: base.minIndex - octaveSteps,
+      maxIndex: base.maxIndex + octaveSteps,
+    };
+  }
+  return base;
+}
+
+export function buildNotePoolForLevel(clefName, baseNote, level) {
+  const pool = [];
+  const { minIndex, maxIndex } = getRangeForLevel(clefName, baseNote, level);
+  for (let index = minIndex; index <= maxIndex; index += 1) {
+    const baseName = staffIndexToNoteName(index, baseNote);
+    pool.push({ name: baseName, staffIndex: index });
+    if (level < 2) continue;
+    const match = /^([A-GH])(\d+)$/.exec(baseName);
+    if (!match) continue;
+    const [, letter, octave] = match;
+    pool.push({ name: `${letter}#${octave}`, staffIndex: index, accidental: "#" });
+    const flatLetter = letter === "H" ? "B" : letter;
+    pool.push({ name: `${flatLetter}b${octave}`, staffIndex: index, accidental: "b" });
+  }
+  return pool;
+}
+
+export function shouldEndSession(completed, total = DEFAULT_SESSION_NOTES) {
+  return completed >= total;
 }
 
 export function frequencyToNote(frequency) {
