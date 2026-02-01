@@ -352,32 +352,44 @@ canvas {
   transform: translateY(0) scale(1);
 }
 
-.milestone-overlay {
+.end-overlay {
   position: fixed;
   inset: 0;
   display: none;
   place-items: center;
-  background: radial-gradient(circle at center, rgba(255, 245, 215, 0.9), rgba(255, 255, 255, 0.7));
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  z-index: 45;
   overflow: hidden;
 }
 
-.milestone-overlay.show {
+.end-overlay.show {
   display: grid;
-  opacity: 1;
-  pointer-events: auto;
 }
 
-.milestone-content {
+.end-content {
   position: relative;
   z-index: 2;
   display: grid;
-  gap: 12px;
-  place-items: center;
+  gap: 18px;
   text-align: center;
+}
+
+.end-actions {
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+}
+
+.end-monkey {
+  width: clamp(220px, 42vw, 520px);
+  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.25));
+  animation: monkey-bounce 3s ease-in-out;
+}
+
+.end-monkey img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 #confetti-canvas {
@@ -387,81 +399,6 @@ canvas {
   height: 100%;
   z-index: 0;
   pointer-events: none;
-}
-
-.milestone-monkey {
-  width: clamp(220px, 42vw, 520px);
-  filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.25));
-  animation: monkey-bounce 3s ease-in-out;
-}
-
-.milestone-monkey img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.milestone-text {
-  font-size: clamp(2rem, 6vw, 4rem);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  color: #1c1b1f;
-}
-
-.warning-overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  place-items: center;
-  background: rgba(20, 16, 24, 0.5);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 35;
-}
-
-.warning-overlay.show {
-  display: grid;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.warning-content img {
-  width: clamp(220px, 40vw, 520px);
-  height: auto;
-  display: block;
-  filter: drop-shadow(0 20px 26px rgba(0, 0, 0, 0.35));
-}
-
-.end-overlay {
-  position: fixed;
-  inset: 0;
-  display: none;
-  place-items: center;
-  background: rgba(255, 255, 255, 0.92);
-  z-index: 45;
-}
-
-.end-overlay.show {
-  display: grid;
-}
-
-.end-content {
-  display: grid;
-  gap: 18px;
-  text-align: center;
-}
-
-.end-title {
-  font-size: clamp(2rem, 6vw, 4rem);
-  font-weight: 800;
-}
-
-.end-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(160px, 1fr));
-  gap: 16px;
-  justify-items: center;
 }
 
 @keyframes monkey-bounce {
