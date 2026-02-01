@@ -8,22 +8,19 @@
   <body>
     <div class="app">
       <header class="hero">
-        <div>
-          <p class="eyebrow">Sight-Read Playground</p>
-          <h1>Match the Note</h1>
-          <p class="lede">
-            Play the note you see. If you match it, it turns green. If not, your note appears on the staff.
-          </p>
-        </div>
         <div class="controls">
-          <button id="start-btn" class="primary">Start Listening</button>
-          <button id="new-note-btn" class="ghost">New Note</button>
+          <div class="clef-toggle" role="group" aria-label="Clef selection">
+            <button id="clef-treble" class="clef-btn active" aria-pressed="true">𝄞</button>
+            <button id="clef-bass" class="clef-btn" aria-pressed="false">𝄢</button>
+          </div>
           <div class="status" id="status">Microphone off</div>
+          <button id="mic-fallback" class="primary hidden">ENABLE MICROPHONE</button>
         </div>
       </header>
 
       <main class="stage">
         <canvas id="staff" width="900" height="320" aria-label="Music staff"></canvas>
+        <div class="celebration" id="celebration" aria-live="polite"></div>
         <div class="readout">
           <div>
             <span class="label">Target</span>
@@ -40,16 +37,6 @@
         </div>
       </main>
 
-      <footer class="tips">
-        <div>
-          <h2>Tips</h2>
-          <ul>
-            <li>Use a quiet room and hold the note steady.</li>
-            <li>Try humming, whistling, or a real instrument.</li>
-            <li>Click “New Note” to keep practicing.</li>
-          </ul>
-        </div>
-      </footer>
     </div>
 
     <script type="module" src="/src/main.js"></script>

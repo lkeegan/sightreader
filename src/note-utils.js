@@ -1,4 +1,4 @@
-export const STAFF_BASE_NOTE = { letterIndex: 2, octave: 4 }; // E4 on the bottom line.
+export const STAFF_BASE_NOTE = { letterIndex: 2, octave: 4 }; // Treble: E4 on the bottom line.
 export const LETTERS = ["C", "D", "E", "F", "G", "A", "H"];
 export const NOTE_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "H"];
 
@@ -24,9 +24,9 @@ export function formatNoteLabel(note) {
   return `${letter}${accidental}${octave}`;
 }
 
-export function staffIndexToNoteName(index) {
-  let letterIndex = STAFF_BASE_NOTE.letterIndex;
-  let octave = STAFF_BASE_NOTE.octave;
+export function staffIndexToNoteName(index, baseNote = STAFF_BASE_NOTE) {
+  let letterIndex = baseNote.letterIndex;
+  let octave = baseNote.octave;
   if (index > 0) {
     for (let step = 0; step < index; step += 1) {
       letterIndex += 1;
@@ -47,13 +47,13 @@ export function staffIndexToNoteName(index) {
   return `${LETTERS[letterIndex]}${octave}`;
 }
 
-export function noteNameToStaffIndex(name) {
+export function noteNameToStaffIndex(name, baseNote = STAFF_BASE_NOTE) {
   const parsed = parseNoteName(name);
   if (!parsed) return null;
   const normalizedLetter = parsed.letter === "B" ? "H" : parsed.letter;
   const letterIndex = LETTERS.indexOf(normalizedLetter);
   if (letterIndex === -1) return null;
-  const baseDiatonic = STAFF_BASE_NOTE.octave * 7 + STAFF_BASE_NOTE.letterIndex;
+  const baseDiatonic = baseNote.octave * 7 + baseNote.letterIndex;
   const targetDiatonic = parsed.octave * 7 + letterIndex;
   return targetDiatonic - baseDiatonic;
 }

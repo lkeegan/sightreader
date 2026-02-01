@@ -5,12 +5,14 @@ import { formatNoteLabel, frequencyToNote, noteNameToStaffIndex, staffIndexToNot
 const canvas = document.getElementById("staff");
 const ctx = canvas.getContext("2d");
 
-const startBtn = document.getElementById("start-btn");
-const newNoteBtn = document.getElementById("new-note-btn");
+const trebleBtn = document.getElementById("clef-treble");
+const bassBtn = document.getElementById("clef-bass");
 const statusEl = document.getElementById("status");
 const targetEl = document.getElementById("target-note");
 const detectedEl = document.getElementById("detected-note");
 const frequencyEl = document.getElementById("frequency");
+const celebrationEl = document.getElementById("celebration");
+const micFallbackBtn = document.getElementById("mic-fallback");
 
 const STAFF = {
   left: 110,
@@ -23,37 +25,25 @@ const CLEF = {
   lineExtension: 40,
 };
 
-const NOTE_POOL = [
-  { name: "C4", midi: 60, staffIndex: -2 },
-  { name: "D4", midi: 62, staffIndex: -1 },
-  { name: "E4", midi: 64, staffIndex: 0 },
-  { name: "F4", midi: 65, staffIndex: 1 },
-  { name: "G4", midi: 67, staffIndex: 2 },
-  { name: "A4", midi: 69, staffIndex: 3 },
-  { name: "H4", midi: 71, staffIndex: 4 },
-  { name: "C5", midi: 72, staffIndex: 5 },
-  { name: "D5", midi: 74, staffIndex: 6 },
-  { name: "E5", midi: 76, staffIndex: 7 },
-  { name: "F5", midi: 77, staffIndex: 8 },
-  { name: "G5", midi: 79, staffIndex: 9 },
-  { name: "A5", midi: 81, staffIndex: 10 },
-];
-
-const STAFF_INDEX_BY_NAME = {
-  C4: -2,
-  D4: -1,
-  E4: 0,
-  F4: 1,
-  G4: 2,
-  A4: 3,
-  H4: 4,
-  C5: 5,
-  D5: 6,
-  E5: 7,
-  F5: 8,
-  G5: 9,
-  A5: 10,
+const CLEFS = {
+  treble: {
+    name: "Treble",
+    symbol: "𝄞",
+    baseNote: { letterIndex: 2, octave: 4 }, // E4 on the bottom line.
+    symbolIndex: 2,
+    symbolOffset: 0.6,
+  },
+  bass: {
+    name: "Bass",
+    symbol: "𝄢",
+    baseNote: { letterIndex: 4, octave: 2 }, // G2 on the bottom line.
+    symbolIndex: 6,
+    symbolOffset: -1.55,
+  },
 };
+
+let currentClef = CLEFS.treble;
+let notePool = [];
 
 let audioContext = null;
 let analyser = null;
@@ -69,10 +59,22 @@ let listening = false;
 let pendingNote = null;
 let pendingSince = 0;
 const MIN_HOLD_MS = 50;
-const MIN_PITCH_HZ = 80;
-const MAX_PITCH_HZ = 1000;
+const MIN_PITCH_HZ = 27.5;
+const MAX_PITCH_HZ = 4186;
 const OCTAVE_TOLERANCE = 0.03;
 const CLARITY_THRESHOLD = 0.9;
+let celebrationUntil = 0;
+let nextNoteAt = 0;
+let matchLock = false;
+
+function buildNotePool() {
+  const pool = [];
+  for (let index = -6; index <= 12; index += 1) {
+    const name = staffIndexToNoteName(index, currentClef.baseNote);
+    pool.push({ name, staffIndex: index });
+  }
+  return pool;
+}
 
 function resizeCanvas() {
   const ratio = window.devicePixelRatio || 1;
@@ -84,7 +86,7 @@ function resizeCanvas() {
 }
 
 function pickRandomNote() {
-  const pick = NOTE_POOL[Math.floor(Math.random() * NOTE_POOL.length)];
+  const pick = notePool[Math.floor(Math.random() * notePool.length)];
   targetNote = { ...pick };
   targetEl.textContent = formatNoteLabel(targetNote);
   drawStaff();
@@ -96,8 +98,8 @@ function staffYForIndex(index) {
 }
 
 function setTargetByIndex(index) {
-  const name = staffIndexToNoteName(index);
-  const note = NOTE_POOL.find((entry) => entry.name === name) || { name, staffIndex: index };
+  const name = staffIndexToNoteName(index, currentClef.baseNote);
+  const note = notePool.find((entry) => entry.name === name) || { name, staffIndex: index };
   targetNote = { ...note };
   targetEl.textContent = formatNoteLabel(targetNote);
   drawStaff();
@@ -108,10 +110,7 @@ function getStaffIndex(note) {
     return note.staffIndex;
   }
   const key = note.baseName || note.name;
-  if (key && Object.prototype.hasOwnProperty.call(STAFF_INDEX_BY_NAME, key)) {
-    return STAFF_INDEX_BY_NAME[key];
-  }
-  const computed = key ? noteNameToStaffIndex(key) : null;
+  const computed = key ? noteNameToStaffIndex(key, currentClef.baseNote) : null;
   return Number.isFinite(computed) ? computed : 0;
 }
 
@@ -137,11 +136,21 @@ function drawStaff() {
   ctx.font = "96px serif";
   ctx.fillStyle = "#1c1b1f";
   ctx.textBaseline = "middle";
-  ctx.fillText("𝄞", CLEF.x, staffYForIndex(2) - STAFF.lineGap * 0.6);
+  ctx.fillText(
+    currentClef.symbol,
+    CLEF.x,
+    staffYForIndex(currentClef.symbolIndex) - STAFF.lineGap * currentClef.symbolOffset,
+  );
   ctx.textBaseline = "alphabetic";
 
   if (targetNote) {
-    drawNote(targetNote, detectedNote && detectedNote.name === targetNote.name ? "#2fbf71" : "#1c1b1f");
+    const isMatch = detectedNote && detectedNote.name === targetNote.name;
+    drawNote(
+      targetNote,
+      isMatch ? "#2fbf71" : "#1c1b1f",
+      false,
+      isMatch ? getCelebrationJitter() : null,
+    );
   }
 
   if (detectedNote && (!targetNote || detectedNote.name !== targetNote.name)) {
@@ -178,10 +187,10 @@ function drawLedgerLines(index, x) {
   }
 }
 
-function drawNote(note, color, isDetected = false) {
-  const x = STAFF.left + STAFF.width / 2 + (isDetected ? 120 : 0);
+function drawNote(note, color, isDetected = false, jitter = null) {
+  const x = STAFF.left + STAFF.width / 2 + (isDetected ? 120 : 0) + (jitter ? jitter.x : 0);
   const index = getStaffIndex(note);
-  const y = staffYForIndex(index);
+  const y = staffYForIndex(index) + (jitter ? jitter.y : 0);
   const stemDown = index >= 4;
 
   drawLedgerLines(index, x);
@@ -216,12 +225,35 @@ function drawNote(note, color, isDetected = false) {
   }
 }
 
+function getCelebrationJitter() {
+  const now = performance.now();
+  if (now > celebrationUntil) return null;
+  const wobble = (now - (celebrationUntil - 700)) / 700;
+  const amplitude = 6;
+  return {
+    x: Math.sin(wobble * Math.PI * 6) * amplitude,
+    y: Math.cos(wobble * Math.PI * 5) * amplitude,
+  };
+}
+
+function triggerCelebration() {
+  const now = performance.now();
+  celebrationUntil = now + 700;
+  nextNoteAt = now + 1000;
+  matchLock = true;
+  celebrationEl.textContent = "Well done!";
+  celebrationEl.classList.add("show");
+}
+
 async function startListening() {
   if (listening) {
     return;
   }
 
   try {
+    if (micFallbackBtn) {
+      micFallbackBtn.classList.add("hidden");
+    }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const source = audioContext.createMediaStreamSource(stream);
@@ -233,11 +265,12 @@ async function startListening() {
     detector = PitchDetector.forFloat32Array(analyser.fftSize);
     listening = true;
     statusEl.textContent = "Listening…";
-    startBtn.textContent = "Listening";
-    startBtn.disabled = true;
     tick();
   } catch (error) {
-    statusEl.textContent = "Microphone permission denied";
+    statusEl.textContent = "Tap to enable microphone";
+    if (micFallbackBtn) {
+      micFallbackBtn.classList.remove("hidden");
+    }
   }
 }
 
@@ -276,7 +309,7 @@ function detectPitch() {
 
   detectedFrequency = medianPitch;
   const baseNote = frequencyToNote(medianPitch);
-  const computedIndex = noteNameToStaffIndex(baseNote.name);
+  const computedIndex = noteNameToStaffIndex(baseNote.name, currentClef.baseNote);
   const candidateNote = {
     ...baseNote,
     staffIndex: Number.isFinite(computedIndex) ? computedIndex : undefined,
@@ -298,6 +331,16 @@ function tick() {
 
   detectPitch();
 
+  const now = performance.now();
+  if (celebrationUntil && now > celebrationUntil) {
+    celebrationEl.classList.remove("show");
+  }
+  if (matchLock && now > nextNoteAt) {
+    matchLock = false;
+    celebrationUntil = 0;
+    pickRandomNote();
+  }
+
   if (detectedNote) {
     detectedEl.textContent = formatNoteLabel(detectedNote);
     frequencyEl.textContent = `${detectedFrequency.toFixed(1)} Hz`;
@@ -307,11 +350,34 @@ function tick() {
   }
 
   drawStaff();
+
+  if (!matchLock && detectedNote && targetNote && detectedNote.name === targetNote.name) {
+    triggerCelebration();
+  }
+
   requestAnimationFrame(tick);
 }
 
-startBtn.addEventListener("click", startListening);
-newNoteBtn.addEventListener("click", pickRandomNote);
+function setClef(nextClef) {
+  currentClef = nextClef;
+  trebleBtn.classList.toggle("active", currentClef === CLEFS.treble);
+  trebleBtn.setAttribute("aria-pressed", currentClef === CLEFS.treble);
+  bassBtn.classList.toggle("active", currentClef === CLEFS.bass);
+  bassBtn.setAttribute("aria-pressed", currentClef === CLEFS.bass);
+  notePool = buildNotePool();
+  if (targetNote) {
+    const index = noteNameToStaffIndex(targetNote.name, currentClef.baseNote);
+    if (Number.isFinite(index)) {
+      setTargetByIndex(index);
+      return;
+    }
+  }
+  pickRandomNote();
+}
+
+trebleBtn.addEventListener("click", () => setClef(CLEFS.treble));
+bassBtn.addEventListener("click", () => setClef(CLEFS.bass));
+micFallbackBtn.addEventListener("click", startListening);
 canvas.addEventListener("click", (event) => {
   const rect = canvas.getBoundingClientRect();
   const y = event.clientY - rect.top;
@@ -322,4 +388,6 @@ canvas.addEventListener("click", (event) => {
 window.addEventListener("resize", resizeCanvas);
 
 resizeCanvas();
-pickRandomNote();
+notePool = buildNotePool();
+setClef(CLEFS.treble);
+startListening();
