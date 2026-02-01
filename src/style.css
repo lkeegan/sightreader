@@ -89,6 +89,10 @@ body {
   font-size: 0.35em;
 }
 
+.note-mode-toggle .sig-btn {
+  font-size: clamp(0.55rem, 1.2vw, 0.8rem);
+}
+
 .clef-toggle,
 .signature-toggle {
   justify-items: start;
