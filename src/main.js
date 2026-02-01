@@ -3,7 +3,6 @@ import confetti from "canvas-confetti";
 import { PitchDetector } from "pitchy";
 import {
   DEFAULT_SESSION_NOTES,
-  KEY_SIGNATURES,
   adjustNoteForKeyChange,
   buildNotePoolForLevel,
   effectiveNoteName,
@@ -11,9 +10,9 @@ import {
   noteNameToMidi,
   noteNameToStaffIndex,
   shouldEndSession,
-  signatureAccidentalForLetter,
-  staffIndexToNoteName,
 } from "./note-utils.js";
+import { AUDIO_CONFIG, CLEF_STYLE, CLEFS, KEY_SIGNATURE_POSITIONS, STAFF_DEFAULT } from "./config.js";
+import { createStaffRenderer } from "./staff-renderer.js";
 
 const dom = {
   canvas: document.getElementById("staff"),
@@ -45,57 +44,11 @@ const dom = {
   stepLevel: document.querySelector(".level-step"),
 };
 
-const ctx = dom.canvas.getContext("2d");
 const confettiInstance = dom.confettiCanvas
   ? confetti.create(dom.confettiCanvas, { resize: true, useWorker: true })
   : confetti;
 
-const STAFF = {
-  left: 110,
-  top: 130,
-  width: 680,
-  lineGap: 18,
-};
-const CLEF = {
-  lineExtension: 40,
-};
-
-const CLEFS = {
-  treble: {
-    name: "Treble",
-    symbol: "𝄞",
-    baseNote: { letterIndex: 2, octave: 4 }, // E4 on the bottom line.
-    symbolIndex: 2,
-    symbolOffset: 0.6,
-  },
-  bass: {
-    name: "Bass",
-    symbol: "𝄢",
-    baseNote: { letterIndex: 4, octave: 2 }, // G2 on the bottom line.
-    symbolIndex: 6,
-    symbolOffset: -1.55,
-  },
-};
-
-const UI = {
-  steps: {
-    clef: "clef",
-    key: "key",
-    level: "level",
-    session: "session",
-  },
-};
-
-const AUDIO = {
-  fftSize: 4096,
-  smoothing: 0.8,
-  minHoldMs: 25,
-  minPitchHz: 27.5,
-  maxPitchHz: 4186,
-  octaveTolerance: 0.03,
-  clarityThreshold: 0.9,
-  rmsThreshold: 0.015,
-};
+const AUDIO = AUDIO_CONFIG;
 
 const SESSION = {
   notesPerSession: DEFAULT_SESSION_NOTES,
@@ -121,7 +74,6 @@ let audioContext = null;
 let analyser = null;
 let timeData = null;
 let detector = null;
-let clarity = 0;
 const recentPitches = [];
 const PITCH_WINDOW = 5;
 let targetNote = null;
@@ -144,18 +96,14 @@ const WRONG_COOLDOWN_MS = 350;
 let currentLevel = 1;
 let notesCompleted = 0;
 const NOTES_PER_SESSION = SESSION.notesPerSession;
-let sessionActive = false;
 
-const KEY_SIGNATURE_POSITIONS = {
-  treble: {
-    sharps: [8, 5, 9, 6, 3, 7, 4], // F, C, G, D, A, E, B
-    flats: [4, 7, 3, 6, 2, 5, 1], // B, E, A, D, G, C, F
-  },
-  bass: {
-    sharps: [6, 3, 7, 4, 1, 5, 2], // F, C, G, D, A, E, B
-    flats: [2, 5, 1, 4, 0, 3, -1], // B, E, A, D, G, C, F
-  },
-};
+const renderer = createStaffRenderer({
+  canvas: dom.canvas,
+  clefs: CLEFS,
+  keySignaturePositions: KEY_SIGNATURE_POSITIONS,
+  staffDefaults: STAFF_DEFAULT,
+  clefStyle: CLEF_STYLE,
+});
 
 
 function buildNotePool() {
@@ -164,19 +112,8 @@ function buildNotePool() {
 }
 
 function resizeCanvas() {
-  const ratio = window.devicePixelRatio || 1;
-  const { width } = dom.canvas.getBoundingClientRect();
   const stageHeight = dom.stage ? dom.stage.getBoundingClientRect().height : 420;
-  const desiredHeight = Math.max(420, stageHeight - 24);
-  dom.canvas.width = Math.floor(width * ratio);
-  dom.canvas.height = Math.floor(desiredHeight * ratio);
-  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-  const viewWidth = width;
-  const viewHeight = desiredHeight;
-  STAFF.width = Math.min(900, viewWidth - 180);
-  STAFF.left = Math.max(40, (viewWidth - STAFF.width) / 2);
-  const staffHeight = STAFF.lineGap * 4;
-  STAFF.top = Math.max(60, (viewHeight - staffHeight) / 2);
+  renderer.resize(stageHeight);
   drawStaff();
 }
 
@@ -186,119 +123,16 @@ function pickRandomNote() {
   drawStaff();
 }
 
-function staffYForIndex(index) {
-  const baseY = STAFF.top + STAFF.lineGap * 4;
-  return baseY - index * (STAFF.lineGap / 2);
-}
-
-function setTargetByIndex(index) {
-  const name = staffIndexToNoteName(index, currentClef.baseNote);
-  const note = notePool.find((entry) => entry.name === name) || { name, staffIndex: index };
-  targetNote = { ...note };
-  drawStaff();
-}
-
-function getStaffIndex(note) {
-  if (Number.isFinite(note.staffIndex)) {
-    return note.staffIndex;
-  }
-  const key = note.baseName || note.name;
-  const computed = key ? noteNameToStaffIndex(key, currentClef.baseNote) : null;
-  return Number.isFinite(computed) ? computed : 0;
-}
-
 function drawStaff() {
-  ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
-  ctx.save();
-  ctx.scale(1, 1);
-
-  ctx.fillStyle = "#fff7e8";
-  ctx.fillRect(0, 0, dom.canvas.width, dom.canvas.height);
-
-  ctx.strokeStyle = "#1c1b1f";
-  ctx.lineWidth = 2;
-
-  for (let i = 0; i < 5; i += 1) {
-    const y = STAFF.top + i * STAFF.lineGap;
-    ctx.beginPath();
-    ctx.moveTo(STAFF.left - CLEF.lineExtension, y);
-    ctx.lineTo(STAFF.left + STAFF.width, y);
-    ctx.stroke();
-  }
-
-  const clefX = STAFF.left - CLEF.lineExtension + 12;
-  ctx.font = "96px serif";
-  ctx.fillStyle = "#1c1b1f";
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    currentClef.symbol,
-    clefX,
-    staffYForIndex(currentClef.symbolIndex) - STAFF.lineGap * currentClef.symbolOffset,
-  );
-  ctx.textBaseline = "alphabetic";
-
-  drawKeySignature();
-
-  if (targetNote) {
-    const isMatch = detectedNote && notesMatch(detectedNote, targetNote);
-    drawNote(
-      targetNote,
-      isMatch ? "#2fbf71" : "#1c1b1f",
-      false,
-      isMatch ? getCelebrationJitter() : null,
-    );
-  }
-
-  if (detectedNote && (!targetNote || !notesMatch(detectedNote, targetNote))) {
-    drawNote(formatDetectedNoteForKey(detectedNote), "#f05a5a", true);
-  }
-
-  ctx.restore();
-}
-
-function drawLedgerLines(index, x) {
-  const lowestLine = 0;
-  const highestLine = 8;
-  ctx.strokeStyle = "#1c1b1f";
-  ctx.lineWidth = 2;
-
-  if (index < lowestLine) {
-    for (let step = -2; step >= index; step -= 2) {
-      const y = staffYForIndex(step);
-      ctx.beginPath();
-      ctx.moveTo(x - 18, y);
-      ctx.lineTo(x + 18, y);
-      ctx.stroke();
-    }
-  }
-
-  if (index > highestLine) {
-    for (let step = 10; step <= index; step += 2) {
-      const y = staffYForIndex(step);
-      ctx.beginPath();
-      ctx.moveTo(x - 18, y);
-      ctx.lineTo(x + 18, y);
-      ctx.stroke();
-    }
-  }
-}
-
-function drawKeySignature() {
-  const signature = KEY_SIGNATURES[keySignature];
-  if (!signature || signature.count === 0) return;
-  const positions =
-    currentClef === CLEFS.treble ? KEY_SIGNATURE_POSITIONS.treble : KEY_SIGNATURE_POSITIONS.bass;
-  const indices = signature.type === "sharp" ? positions.sharps : positions.flats;
-  const xBase = STAFF.left + 36;
-  ctx.fillStyle = "#1c1b1f";
-  for (let i = 0; i < signature.count; i += 1) {
-    const index = indices[i];
-    const x = xBase + i * 22;
-    const y = staffYForIndex(index);
-    const yOffset = signature.type === "sharp" ? 12 : 6;
-    ctx.font = signature.type === "flat" ? "57px serif" : "42px serif";
-    ctx.fillText(signature.type === "sharp" ? "♯" : "♭", x, y + yOffset);
-  }
+  const isMatch = detectedNote && targetNote && notesMatch(detectedNote, targetNote);
+  renderer.draw({
+    clef: currentClef,
+    keySignature,
+    targetNote,
+    detectedNote,
+    isMatch,
+    jitter: isMatch ? getCelebrationJitter() : null,
+  });
 }
 
 function setKeySignature(nextSignature) {
@@ -315,89 +149,6 @@ function setKeySignature(nextSignature) {
   drawStaff();
 }
 
-function drawNote(note, color, isDetected = false, jitter = null) {
-  const x = STAFF.left + STAFF.width / 2 + (isDetected ? 120 : 0) + (jitter ? jitter.x : 0);
-  const index = getStaffIndex(note);
-  const y = staffYForIndex(index) + (jitter ? jitter.y : 0);
-  const stemDown = index >= 4;
-
-  drawLedgerLines(index, x);
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(-0.35);
-  ctx.fillStyle = color;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 12, 9, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  if (stemDown) {
-    ctx.moveTo(x - 10, y + 2);
-    ctx.lineTo(x - 10, y + 42);
-  } else {
-    ctx.moveTo(x + 10, y - 2);
-    ctx.lineTo(x + 10, y - 42);
-  }
-  ctx.stroke();
-
-  if (note.accidental) {
-    ctx.font = note.accidental === "b" ? "57px serif" : "42px serif";
-    ctx.fillStyle = color;
-    const symbol =
-      note.accidental === "b" ? "♭" : note.accidental === "natural" ? "♮" : "#";
-    const xOffset = note.accidental === "b" ? 34 : 34;
-    const yOffset = note.accidental === "b" ? 6 : 14;
-    const adjustedY = note.accidental === "natural" ? yOffset - STAFF.lineGap * 0.5 : yOffset;
-    ctx.fillText(symbol, x - xOffset, y + adjustedY);
-  }
-}
-
-function formatDetectedNoteForKey(note) {
-  const signature = KEY_SIGNATURES[keySignature];
-  const match = /^([A-GHB])([#b]?)(-?\d+)$/.exec(note.name);
-  if (!signature || !match) return note;
-  const [, letter, accidental, octave] = match;
-
-  let name = note.name;
-  let staffIndex = getStaffIndex(note);
-  let displayAccidental = note.accidental || null;
-
-  if (signature.type === "flat" && accidental === "#") {
-    const flatMap = {
-      "C#": "Db",
-      "D#": "Eb",
-      "F#": "Gb",
-      "G#": "Ab",
-      "A#": "Bb",
-    };
-    const mapped = flatMap[`${letter}#`];
-    if (mapped) {
-      name = `${mapped}${octave}`;
-      staffIndex = noteNameToStaffIndex(name, currentClef.baseNote);
-      displayAccidental = "b";
-    }
-  }
-
-  if (!displayAccidental) {
-    const signatureAcc = signatureAccidentalForLetter(letter, keySignature);
-    if (signatureAcc) {
-      displayAccidental = "natural";
-    }
-  }
-
-  return {
-    ...note,
-    name,
-    staffIndex,
-    accidental: displayAccidental,
-  };
-}
 
 function notesMatch(detected, target) {
   const targetName = effectiveNoteName(target, keySignature);
@@ -458,7 +209,6 @@ function triggerCelebration() {
 }
 
 function endSession() {
-  sessionActive = false;
   matchLock = true;
   inputLocked = true;
   dom.endScreen?.classList.add("show");
@@ -491,7 +241,6 @@ function startSession() {
   notesCompleted = 0;
   correctCount = 0;
   incorrectCount = 0;
-  sessionActive = true;
   matchLock = false;
   inputLocked = false;
   notePool = buildNotePool();
@@ -517,7 +266,6 @@ function setFlow(step) {
   setHidden(dom.controls, inSession);
   dom.controls?.classList.toggle("clef-only", step !== "session");
   setHidden(dom.header, inSession);
-  sessionActive = step === "session";
   if (inSession) {
     requestAnimationFrame(resizeCanvas);
   }
