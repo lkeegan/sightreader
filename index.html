@@ -20,38 +20,42 @@
           <div class="flow-step signature-toggle key-step" role="group" aria-label="Choose key signature">
             <img class="flow-image" src="/assets/monkey-piano.jpg" alt="Monkey at a piano" />
             <div class="flow-title">Choose a key signature:</div>
-            <button id="sig-natural" class="sig-btn active" aria-pressed="true">
-              <span class="sig-icon sig-natural">♮</span>
-            </button>
-            <button id="sig-sharp" class="sig-btn" aria-pressed="false">
-              <span class="sig-stack sharp">
-                <span class="sig-mark" style="--x: 0px; --y: -0.25em">♯</span>
-              </span>
-            </button>
-            <button id="sig-flat" class="sig-btn" aria-pressed="false">
-              <span class="sig-stack flat">
-                <span class="sig-mark" style="--x: 0px; --y: -0.1em">♭</span>
-              </span>
-            </button>
-            <button id="sig-sharp-2" class="sig-btn" aria-pressed="false">
-              <span class="sig-stack sharp">
-                <span class="sig-mark" style="--x: 0px; --y: -0.25em">♯</span>
-                <span class="sig-mark" style="--x: 0.45em; --y: 0.1em">♯</span>
-              </span>
-            </button>
-            <button id="sig-flat-2" class="sig-btn" aria-pressed="false">
-              <span class="sig-stack flat">
-                <span class="sig-mark" style="--x: 0px; --y: -0.1em">♭</span>
-                <span class="sig-mark" style="--x: 0.45em; --y: -0.45em">♭</span>
-              </span>
-            </button>
+            <div class="signature-buttons">
+              <button id="sig-natural" class="sig-btn active" aria-pressed="true">
+                <span class="sig-icon sig-natural">♮</span>
+              </button>
+              <button id="sig-sharp" class="sig-btn" aria-pressed="false">
+                <span class="sig-stack sharp">
+                  <span class="sig-mark" style="--x: 0px; --y: -0.25em">♯</span>
+                </span>
+              </button>
+              <button id="sig-flat" class="sig-btn" aria-pressed="false">
+                <span class="sig-stack flat">
+                  <span class="sig-mark" style="--x: 0px; --y: -0.1em">♭</span>
+                </span>
+              </button>
+              <button id="sig-sharp-2" class="sig-btn" aria-pressed="false">
+                <span class="sig-stack sharp">
+                  <span class="sig-mark" style="--x: 0px; --y: -0.25em">♯</span>
+                  <span class="sig-mark" style="--x: 0.45em; --y: 0.1em">♯</span>
+                </span>
+              </button>
+              <button id="sig-flat-2" class="sig-btn" aria-pressed="false">
+                <span class="sig-stack flat">
+                  <span class="sig-mark" style="--x: 0px; --y: -0.1em">♭</span>
+                  <span class="sig-mark" style="--x: 0.45em; --y: -0.45em">♭</span>
+                </span>
+              </button>
+            </div>
           </div>
           <div class="flow-step level-toggle level-step" role="group" aria-label="Choose level">
             <img class="flow-image" src="/assets/monkey-piano.jpg" alt="Monkey at a piano" />
             <div class="flow-title">Choose a level:</div>
-            <button id="level-1" class="sig-btn active" aria-pressed="true">Level 1</button>
-            <button id="level-2" class="sig-btn" aria-pressed="false">Level 2</button>
-            <button id="level-3" class="sig-btn" aria-pressed="false">Level 3</button>
+            <div class="level-buttons">
+              <button id="level-1" class="sig-btn active" aria-pressed="true">Level 1</button>
+              <button id="level-2" class="sig-btn" aria-pressed="false">Level 2</button>
+              <button id="level-3" class="sig-btn" aria-pressed="false">Level 3</button>
+            </div>
           </div>
           <div class="status" id="status">Microphone off</div>
           <button id="mic-fallback" class="primary hidden">ENABLE MICROPHONE</button>
