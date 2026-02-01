@@ -243,6 +243,42 @@ canvas {
   transform: translateY(0) scale(1);
 }
 
+.milestone {
+  position: absolute;
+  bottom: clamp(10px, 2vw, 22px);
+  left: clamp(14px, 2.4vw, 26px);
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.milestone.show {
+  opacity: 1;
+  animation: monkey-jump 0.9s ease-out;
+}
+
+.milestone-emoji {
+  display: inline-block;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes monkey-jump {
+  0% {
+    transform: translateY(20px) scale(0.8);
+  }
+  40% {
+    transform: translateY(-24px) scale(1);
+  }
+  70% {
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% {
+    transform: translateY(20px) scale(0.9);
+  }
+}
+
 @media (max-width: 900px) {
   .controls {
     justify-items: stretch;

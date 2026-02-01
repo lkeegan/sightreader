@@ -31,6 +31,8 @@ const sigNaturalBtn = document.getElementById("sig-natural");
 const statusEl = document.getElementById("status");
 const celebrationEl = document.getElementById("celebration");
 const micFallbackBtn = document.getElementById("mic-fallback");
+const milestoneEl = document.getElementById("milestone");
+const milestoneSound = document.getElementById("milestone-sound");
 
 const STAFF = {
   left: 110,
@@ -84,6 +86,7 @@ let celebrationUntil = 0;
 let nextNoteAt = 0;
 let matchLock = false;
 let keySignature = "natural";
+let correctCount = 0;
 
 const KEY_SIGNATURE_POSITIONS = {
   treble: {
@@ -399,6 +402,24 @@ function triggerCelebration() {
   matchLock = true;
   celebrationEl.textContent = "Well done!";
   celebrationEl.classList.add("show");
+
+  correctCount += 1;
+  if (correctCount % 5 === 0) {
+    triggerMilestone();
+  }
+}
+
+function triggerMilestone() {
+  if (!milestoneEl) return;
+  milestoneEl.innerHTML = "<span class=\"milestone-emoji\">🐵🎉</span>";
+  milestoneEl.classList.add("show");
+  if (milestoneSound) {
+    milestoneSound.currentTime = 0;
+    milestoneSound.play().catch(() => {});
+  }
+  setTimeout(() => {
+    milestoneEl.classList.remove("show");
+  }, 900);
 }
 
 async function startListening() {
