@@ -145,7 +145,7 @@ export function createStaffRenderer({
               : note.accidental === "##"
                 ? "𝄪"
                 : "♯";
-      const xOffset = 34;
+      const xOffset = note.accidental === "bb" || note.accidental === "##" ? 40 : 34;
       const yOffset = note.accidental === "b" ? 8 : 14;
       const adjustedY = note.accidental === "natural" ? yOffset - staff.lineGap * 0.5 : yOffset;
       ctx.fillText(symbol, -xOffset, adjustedY);

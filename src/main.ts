@@ -107,6 +107,9 @@ const WRONG_COOLDOWN_MS = 350;
 let currentLevel = 1;
 let notesCompleted = 0;
 const NOTES_PER_SESSION = SESSION.notesPerSession;
+const isStandalonePwa =
+  window.matchMedia?.("(display-mode: standalone)")?.matches ||
+  (window.navigator as Navigator & { standalone?: boolean }).standalone;
 
 const renderer = createStaffRenderer({
   canvas: dom.canvas,
@@ -306,7 +309,7 @@ function setFlow(step: "clef" | "key" | "level" | "session") {
   setHidden(dom.micFallback, !inSession || listening);
   setHidden(dom.controls, inSession);
   dom.controls?.classList.toggle("clef-only", step !== "session");
-  setHidden(dom.header, inSession);
+  setHidden(dom.header, inSession && listening);
   if (inSession) {
     requestAnimationFrame(resizeCanvas);
   }
@@ -526,7 +529,14 @@ setClef(CLEFS.treble);
 setKeySignature("natural");
 setLevel(1);
 setFlow("clef");
-startListening();
+if (isStandalonePwa) {
+  if (dom.status) {
+    dom.status.textContent = "Tap to enable microphone";
+  }
+  dom.micFallback?.classList.remove("hidden");
+} else {
+  startListening();
+}
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
