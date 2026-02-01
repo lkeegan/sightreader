@@ -167,6 +167,16 @@ body {
   justify-items: center;
 }
 
+@media (max-width: 720px) {
+  .signature-buttons {
+    grid-template-columns: repeat(3, minmax(90px, 1fr));
+  }
+
+  .level-buttons {
+    grid-template-columns: repeat(2, minmax(90px, 1fr));
+  }
+}
+
 .clef-btn {
   font-family: "Noto Music", serif;
   background: white;
