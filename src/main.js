@@ -21,13 +21,9 @@ const bassBtn = document.getElementById("clef-bass");
 const sigSharpBtn = document.getElementById("sig-sharp");
 const sigSharp2Btn = document.getElementById("sig-sharp-2");
 const sigSharp3Btn = document.getElementById("sig-sharp-3");
-const sigSharp4Btn = document.getElementById("sig-sharp-4");
-const sigSharp5Btn = document.getElementById("sig-sharp-5");
 const sigFlatBtn = document.getElementById("sig-flat");
 const sigFlat2Btn = document.getElementById("sig-flat-2");
 const sigFlat3Btn = document.getElementById("sig-flat-3");
-const sigFlat4Btn = document.getElementById("sig-flat-4");
-const sigFlat5Btn = document.getElementById("sig-flat-5");
 const sigNaturalBtn = document.getElementById("sig-natural");
 const modeWhiteBtn = document.getElementById("mode-white");
 const modeBlackBtn = document.getElementById("mode-black");
@@ -289,20 +285,12 @@ function setKeySignature(nextSignature) {
   sigSharp2Btn.setAttribute("aria-pressed", keySignature === "sharp2");
   sigSharp3Btn.classList.toggle("active", keySignature === "sharp3");
   sigSharp3Btn.setAttribute("aria-pressed", keySignature === "sharp3");
-  sigSharp4Btn.classList.toggle("active", keySignature === "sharp4");
-  sigSharp4Btn.setAttribute("aria-pressed", keySignature === "sharp4");
-  sigSharp5Btn.classList.toggle("active", keySignature === "sharp5");
-  sigSharp5Btn.setAttribute("aria-pressed", keySignature === "sharp5");
   sigFlatBtn.classList.toggle("active", keySignature === "flat");
   sigFlatBtn.setAttribute("aria-pressed", keySignature === "flat");
   sigFlat2Btn.classList.toggle("active", keySignature === "flat2");
   sigFlat2Btn.setAttribute("aria-pressed", keySignature === "flat2");
   sigFlat3Btn.classList.toggle("active", keySignature === "flat3");
   sigFlat3Btn.setAttribute("aria-pressed", keySignature === "flat3");
-  sigFlat4Btn.classList.toggle("active", keySignature === "flat4");
-  sigFlat4Btn.setAttribute("aria-pressed", keySignature === "flat4");
-  sigFlat5Btn.classList.toggle("active", keySignature === "flat5");
-  sigFlat5Btn.setAttribute("aria-pressed", keySignature === "flat5");
   if (targetNote) {
     targetNote = adjustNoteForKeyChange(targetNote, previousSignature, keySignature, currentClef.baseNote);
   }
@@ -644,12 +632,6 @@ sigSharp2Btn.addEventListener("click", () => {
 sigSharp3Btn.addEventListener("click", () => {
   setKeySignature("sharp3");
 });
-sigSharp4Btn.addEventListener("click", () => {
-  setKeySignature("sharp4");
-});
-sigSharp5Btn.addEventListener("click", () => {
-  setKeySignature("sharp5");
-});
 sigFlatBtn.addEventListener("click", () => {
   setKeySignature("flat");
 });
@@ -658,12 +640,6 @@ sigFlat2Btn.addEventListener("click", () => {
 });
 sigFlat3Btn.addEventListener("click", () => {
   setKeySignature("flat3");
-});
-sigFlat4Btn.addEventListener("click", () => {
-  setKeySignature("flat4");
-});
-sigFlat5Btn.addEventListener("click", () => {
-  setKeySignature("flat5");
 });
 sigNaturalBtn.addEventListener("click", () => {
   setKeySignature("natural");
