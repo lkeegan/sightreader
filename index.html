@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sight Reader Kids</title>
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Sight-Read Playground</p>
+          <h1>Match the Note</h1>
+          <p class="lede">
+            Play the note you see. If you match it, it turns green. If not, your note appears on the staff.
+          </p>
+        </div>
+        <div class="controls">
+          <button id="start-btn" class="primary">Start Listening</button>
+          <button id="new-note-btn" class="ghost">New Note</button>
+          <div class="status" id="status">Microphone off</div>
+        </div>
+      </header>
+
+      <main class="stage">
+        <canvas id="staff" width="900" height="320" aria-label="Music staff"></canvas>
+        <div class="readout">
+          <div>
+            <span class="label">Target</span>
+            <span class="value" id="target-note">—</span>
+          </div>
+          <div>
+            <span class="label">Detected</span>
+            <span class="value" id="detected-note">—</span>
+          </div>
+          <div>
+            <span class="label">Frequency</span>
+            <span class="value" id="frequency">—</span>
+          </div>
+        </div>
+      </main>
+
+      <footer class="tips">
+        <div>
+          <h2>Tips</h2>
+          <ul>
+            <li>Use a quiet room and hold the note steady.</li>
+            <li>Try humming, whistling, or a real instrument.</li>
+            <li>Click “New Note” to keep practicing.</li>
+          </ul>
+        </div>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
