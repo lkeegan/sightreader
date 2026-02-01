@@ -70,14 +70,6 @@ body {
   display: none;
 }
 
-.flow-step {
-  display: none;
-}
-
-.flow-step.active {
-  display: grid;
-}
-
 .clef-toggle {
   display: grid;
   grid-template-columns: repeat(2, minmax(110px, 1fr));
@@ -98,6 +90,14 @@ body {
   gap: clamp(10px, 1.6vw, 16px);
   grid-column: 1 / -1;
   justify-items: start;
+}
+
+.controls .flow-step {
+  display: none;
+}
+
+.controls .flow-step.active {
+  display: grid;
 }
 
 .note-mode-toggle .sig-btn {
