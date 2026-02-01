@@ -86,17 +86,16 @@ body {
 
 .signature-toggle {
   display: grid;
-  grid-template-columns: repeat(5, minmax(126px, 1fr));
-  gap: clamp(10px, 1.6vw, 16px);
+  grid-template-columns: 1fr;
+  gap: 16px;
   grid-column: 1 / -1;
 }
 
 .level-toggle {
   display: grid;
-  grid-template-columns: repeat(3, minmax(126px, 1fr));
-  gap: clamp(10px, 1.6vw, 16px);
+  grid-template-columns: 1fr;
+  gap: 16px;
   grid-column: 1 / -1;
-  justify-items: start;
 }
 
 .controls .flow-step {
@@ -135,6 +134,20 @@ body {
 .clef-toggle,
 .signature-toggle,
 .level-toggle {
+  justify-items: center;
+}
+
+.signature-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(126px, 1fr));
+  gap: clamp(10px, 1.6vw, 16px);
+  justify-items: center;
+}
+
+.level-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(126px, 1fr));
+  gap: clamp(10px, 1.6vw, 16px);
   justify-items: center;
 }
 
