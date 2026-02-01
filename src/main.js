@@ -441,15 +441,15 @@ function triggerMilestone() {
     milestoneSound.play().catch(() => {});
   }
   const end = performance.now() + 3000;
-  const confettiColors = ["#e24a4a", "#1e6bff", "#ffffff"];
+  const confettiColors = ["#ff3b3b", "#1f7bff", "#ffffff"];
   (function burst() {
     confettiInstance({
-      particleCount: 14,
-      spread: 90,
-      startVelocity: 80,
-      ticks: 60,
-      gravity: 2.4,
-      scalar: 1,
+      particleCount: 45,
+      spread: 100,
+      startVelocity: 90,
+      ticks: 70,
+      gravity: 2.3,
+      scalar: 1.15,
       colors: confettiColors,
       origin: { x: Math.random(), y: 0 },
     });
