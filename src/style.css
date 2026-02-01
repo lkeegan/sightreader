@@ -103,6 +103,14 @@ body {
   font-weight: 700;
   color: var(--ink);
   box-shadow: 0 12px 24px rgba(27, 24, 36, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+#clef-bass {
+  transform: translateY(2px);
 }
 
 .clef-btn.active {
