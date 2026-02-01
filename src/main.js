@@ -97,6 +97,7 @@ let celebrationUntil = 0;
 let nextNoteAt = 0;
 let matchLock = false;
 let nextNoteTimer = null;
+let inputLocked = false;
 let keySignature = "natural";
 let correctCount = 0;
 let incorrectCount = 0;
@@ -416,6 +417,7 @@ function triggerCelebration() {
   celebrationUntil = now + 700;
   nextNoteAt = now + 1000;
   matchLock = true;
+  inputLocked = true;
   celebrationEl.textContent = "Well done!";
   celebrationEl.classList.add("show");
 
@@ -434,6 +436,7 @@ function triggerCelebration() {
     nextNoteTimer = setTimeout(() => {
       matchLock = false;
       celebrationUntil = 0;
+      inputLocked = false;
       pickRandomNote();
     }, 1000);
   }
@@ -442,6 +445,7 @@ function triggerCelebration() {
 function endSession() {
   sessionActive = false;
   matchLock = true;
+  inputLocked = true;
   if (endScreenEl) {
     endScreenEl.classList.add("show");
   }
@@ -476,6 +480,7 @@ function startSession() {
   incorrectCount = 0;
   sessionActive = true;
   matchLock = false;
+  inputLocked = false;
   notePool = buildNotePool();
   updateProgress();
   pickRandomNote();
@@ -600,6 +605,12 @@ function detectPitch() {
 
 function tick() {
   if (!listening) return;
+
+  if (inputLocked) {
+    drawStaff();
+    requestAnimationFrame(tick);
+    return;
+  }
 
   detectPitch();
 
