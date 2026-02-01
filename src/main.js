@@ -453,7 +453,7 @@ function endSession() {
       spread: 100,
       startVelocity: 90,
       ticks: 70,
-      gravity: 2.3,
+      gravity: 0.8,
       scalar: 1.15,
       colors: confettiColors,
       origin: { x: Math.random(), y: 0 },
