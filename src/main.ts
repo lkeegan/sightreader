@@ -469,6 +469,7 @@ function playNoteSound(note: Note) {
   if (!AudioCtor) return;
   const ctx = audioContext || new AudioCtor();
   if (!audioContext) audioContext = ctx;
+  if (ctx.state === "suspended") ctx.resume();
 
   const harmonics = [1, 0.4, 0.2, 0.15, 0.1, 0.05];
   const masterGain = ctx.createGain();
