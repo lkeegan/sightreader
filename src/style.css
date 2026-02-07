@@ -92,7 +92,7 @@ body {
 
 .clef-toggle {
   display: grid;
-  grid-template-columns: repeat(2, minmax(110px, 1fr));
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
   gap: clamp(10px, 1.6vw, 16px);
   grid-column: 1 / -1;
 }
@@ -197,8 +197,44 @@ body {
   line-height: 1;
 }
 
-#clef-bass {
-  transform: translateY(2px);
+.clef-with-staff {
+  position: relative;
+  overflow: hidden;
+}
+
+.clef-with-staff::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 50%;
+  height: 1.5px;
+  transform: translateY(-20px);
+  background: rgba(28, 27, 31, 0.2);
+  box-shadow:
+    0 10px 0 rgba(28, 27, 31, 0.2),
+    0 20px 0 rgba(28, 27, 31, 0.2),
+    0 30px 0 rgba(28, 27, 31, 0.2),
+    0 40px 0 rgba(28, 27, 31, 0.2);
+  pointer-events: none;
+}
+
+.clef-with-staff > span {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+}
+
+#clef-treble > span {
+  transform: translateY(1px);
+}
+
+#clef-bass > span {
+  transform: translateY(-4px);
+}
+
+#clef-tenor > span {
+  transform: translateY(-10px);
 }
 
 .clef-btn.active {
@@ -318,7 +354,6 @@ button.ghost {
 
 .session-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
   padding: clamp(10px, 1.5vw, 18px);
@@ -365,10 +400,9 @@ canvas {
   display: block;
 }
 
-.play-note-btn {
+.stage-icon-btn {
   position: absolute;
   top: clamp(24px, 4vw, 44px);
-  left: clamp(28px, 4.5vw, 52px);
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -383,10 +417,18 @@ canvas {
   transition: color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.play-note-btn:hover {
+.stage-icon-btn:hover {
   color: var(--accent);
   box-shadow: 0 6px 16px rgba(243, 107, 75, 0.2);
   transform: translateY(-1px);
+}
+
+.stage-icon-left {
+  left: clamp(28px, 4.5vw, 52px);
+}
+
+.stage-icon-right {
+  right: clamp(28px, 4.5vw, 52px);
 }
 
 .celebration {
@@ -525,12 +567,12 @@ canvas {
     gap: clamp(8px, 1.5vw, 16px);
   }
 
-  .play-note-btn {
+  .stage-icon-btn {
     width: 56px;
     height: 56px;
   }
 
-  .play-note-btn svg {
+  .stage-icon-btn svg {
     width: 26px;
     height: 26px;
   }

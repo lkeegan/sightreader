@@ -24,6 +24,8 @@ const dom = {
   header: document.getElementById("flow-header") as HTMLElement | null,
   clefTreble: document.getElementById("clef-treble") as HTMLButtonElement | null,
   clefBass: document.getElementById("clef-bass") as HTMLButtonElement | null,
+  clefAlto: document.getElementById("clef-alto") as HTMLButtonElement | null,
+  clefTenor: document.getElementById("clef-tenor") as HTMLButtonElement | null,
   sigSharp: document.getElementById("sig-sharp") as HTMLButtonElement | null,
   sigSharp2: document.getElementById("sig-sharp-2") as HTMLButtonElement | null,
   sigFlat: document.getElementById("sig-flat") as HTMLButtonElement | null,
@@ -125,7 +127,7 @@ const renderer = createStaffRenderer({
 
 
 function buildNotePool() {
-  const clefName = currentClef === CLEFS.treble ? "treble" : "bass";
+  const clefName = currentClef === CLEFS.treble ? "treble" : currentClef === CLEFS.alto ? "alto" : currentClef === CLEFS.tenor ? "tenor" : "bass";
   return buildNotePoolForLevel(clefName, currentClef.baseNote, currentLevel);
 }
 
@@ -521,6 +523,8 @@ function setClef(nextClef: typeof CLEFS.treble) {
   currentClef = nextClef;
   setPressed(dom.clefTreble, currentClef === CLEFS.treble);
   setPressed(dom.clefBass, currentClef === CLEFS.bass);
+  setPressed(dom.clefAlto, currentClef === CLEFS.alto);
+  setPressed(dom.clefTenor, currentClef === CLEFS.tenor);
 }
 
 function setLevel(nextLevel: number) {
@@ -537,6 +541,14 @@ dom.clefTreble?.addEventListener("click", () => {
 });
 dom.clefBass?.addEventListener("click", () => {
   setClef(CLEFS.bass);
+  setFlow("key");
+});
+dom.clefAlto?.addEventListener("click", () => {
+  setClef(CLEFS.alto);
+  setFlow("key");
+});
+dom.clefTenor?.addEventListener("click", () => {
+  setClef(CLEFS.tenor);
   setFlow("key");
 });
 dom.sigSharp?.addEventListener("click", () => {

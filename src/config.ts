@@ -35,7 +35,7 @@ export const CLEF_STYLE: { lineExtension: number } = {
   lineExtension: 40,
 };
 
-export const CLEFS: { treble: ClefDefinition; bass: ClefDefinition } = {
+export const CLEFS: { treble: ClefDefinition; bass: ClefDefinition; alto: ClefDefinition; tenor: ClefDefinition } = {
   treble: {
     name: "Treble",
     symbol: "𝄞",
@@ -50,11 +50,27 @@ export const CLEFS: { treble: ClefDefinition; bass: ClefDefinition } = {
     symbolIndex: 6,
     symbolOffset: -0.60,
   },
+  alto: {
+    name: "Alto",
+    symbol: "𝄡",
+    baseNote: { letterIndex: 3, octave: 3 }, // F3 on the bottom line.
+    symbolIndex: 4, // Middle line = C4.
+    symbolOffset: 0,
+  },
+  tenor: {
+    name: "Tenor",
+    symbol: "𝄡",
+    baseNote: { letterIndex: 1, octave: 3 }, // D3 on the bottom line.
+    symbolIndex: 6, // 4th line = C4.
+    symbolOffset: 0,
+  },
 };
 
 export const KEY_SIGNATURE_POSITIONS: {
   treble: { sharps: number[]; flats: number[] };
   bass: { sharps: number[]; flats: number[] };
+  alto: { sharps: number[]; flats: number[] };
+  tenor: { sharps: number[]; flats: number[] };
 } = {
   treble: {
     sharps: [8, 5, 9, 6, 3, 7, 4], // F, C, G, D, A, E, B
@@ -63,6 +79,14 @@ export const KEY_SIGNATURE_POSITIONS: {
   bass: {
     sharps: [6, 3, 7, 4, 1, 5, 2], // F, C, G, D, A, E, B
     flats: [2, 5, 1, 4, 0, 3, -1], // B, E, A, D, G, C, F
+  },
+  alto: {
+    sharps: [7, 4, 8, 5, 2, 6, 3], // F, C, G, D, A, E, B
+    flats: [3, 6, 2, 5, 1, 4, 0], // B, E, A, D, G, C, F
+  },
+  tenor: {
+    sharps: [9, 6, 3, 7, 4, 8, 5], // F, C, G, D, A, E, B
+    flats: [5, 8, 4, 7, 3, 6, 2], // B, E, A, D, G, C, F
   },
 };
 

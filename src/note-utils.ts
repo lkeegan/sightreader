@@ -1,4 +1,4 @@
-export type ClefName = "treble" | "bass";
+export type ClefName = "treble" | "bass" | "alto" | "tenor";
 export type KeySignatureKey =
   | "natural"
   | "sharp"
@@ -118,6 +118,18 @@ export function getBaseRangeForClef(clefName: ClefName, baseNote: BaseNote) {
     return {
       minIndex: requireStaffIndex("C4", baseNote),
       maxIndex: requireStaffIndex("A5", baseNote),
+    };
+  }
+  if (clefName === "alto") {
+    return {
+      minIndex: requireStaffIndex("D3", baseNote),
+      maxIndex: requireStaffIndex("H4", baseNote),
+    };
+  }
+  if (clefName === "tenor") {
+    return {
+      minIndex: requireStaffIndex("H2", baseNote),
+      maxIndex: requireStaffIndex("G4", baseNote),
     };
   }
   return {

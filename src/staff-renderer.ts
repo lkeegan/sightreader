@@ -9,10 +9,12 @@ import {
 
 interface StaffRendererConfig {
   canvas: HTMLCanvasElement;
-  clefs: { treble: { baseNote: { letterIndex: number; octave: number }; symbol: string; symbolIndex: number; symbolOffset: number } };
+  clefs: { treble: { baseNote: { letterIndex: number; octave: number }; symbol: string; symbolIndex: number; symbolOffset: number }; alto: { baseNote: { letterIndex: number; octave: number }; symbol: string; symbolIndex: number; symbolOffset: number }; tenor: { baseNote: { letterIndex: number; octave: number }; symbol: string; symbolIndex: number; symbolOffset: number } };
   keySignaturePositions: {
     treble: { sharps: number[]; flats: number[] };
     bass: { sharps: number[]; flats: number[] };
+    alto: { sharps: number[]; flats: number[] };
+    tenor: { sharps: number[]; flats: number[] };
   };
   staffDefaults: { left: number; top: number; width: number; lineGap: number };
   clefStyle: { lineExtension: number };
@@ -181,7 +183,7 @@ export function createStaffRenderer({
     const signature = KEY_SIGNATURES[keySignature];
     if (!signature || signature.count === 0) return;
     const positions =
-      clef === clefs.treble ? keySignaturePositions.treble : keySignaturePositions.bass;
+      clef === clefs.treble ? keySignaturePositions.treble : clef === clefs.alto ? keySignaturePositions.alto : clef === clefs.tenor ? keySignaturePositions.tenor : keySignaturePositions.bass;
     const indices = signature.type === "sharp" ? positions.sharps : positions.flats;
     const xBase = staff.left + 42;
     ctx.fillStyle = "#1c1b1f";
