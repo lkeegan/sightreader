@@ -5,6 +5,7 @@ import {
   DEFAULT_SESSION_NOTES,
   adjustNoteForKeyChange,
   buildNotePoolForLevel,
+  effectiveNoteName,
   frequencyToNote,
   midiToFrequency,
   notesMatchByMidi,
