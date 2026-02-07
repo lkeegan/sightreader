@@ -6,6 +6,7 @@ import {
   adjustNoteForKeyChange,
   buildNotePoolForLevel,
   frequencyToNote,
+  midiToFrequency,
   notesMatchByMidi,
   noteNameToMidi,
   noteNameToStaffIndex,
@@ -37,6 +38,7 @@ const dom = {
   confettiCanvas: document.getElementById("confetti-canvas") as HTMLCanvasElement | null,
   endScreen: document.getElementById("end-screen") as HTMLElement | null,
   redo: document.getElementById("redo-session") as HTMLButtonElement | null,
+  playNote: document.getElementById("play-note") as HTMLButtonElement | null,
   restart: document.getElementById("restart-flow") as HTMLButtonElement | null,
   sessionBar: document.getElementById("session-bar") as HTMLElement | null,
   progressLabel: document.getElementById("progress-label") as HTMLElement | null,
@@ -98,6 +100,7 @@ let flyAway: {
   loopRadius: number;
   phase: number;
 } | null = null;
+let playbackActive = false;
 let keySignature: KeySignatureKey = "natural";
 let correctCount = 0;
 let incorrectCount = 0;
@@ -352,6 +355,7 @@ async function startListening() {
 
 function detectPitch() {
   if (!analyser || !timeData || !audioContext || !detector) return;
+  if (playbackActive) return;
   analyser.getFloatTimeDomainData(timeData);
   let sumSquares = 0;
   for (let i = 0; i < timeData.length; i += 1) {
@@ -452,6 +456,65 @@ function tick() {
   requestAnimationFrame(tick);
 }
 
+function playNoteSound(note: Note) {
+  const noteName = effectiveNoteName(note, keySignature);
+  if (!noteName) return;
+  const midi = noteNameToMidi(noteName);
+  if (midi === null) return;
+  const frequency = midiToFrequency(midi);
+
+  const AudioCtor =
+    window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtor) return;
+  const ctx = audioContext || new AudioCtor();
+  if (!audioContext) audioContext = ctx;
+
+  const harmonics = [1, 0.4, 0.2, 0.15, 0.1, 0.05];
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0, ctx.currentTime);
+  masterGain.connect(ctx.destination);
+
+  const attack = 0.01;
+  const decay = 0.15;
+  const sustainLevel = 0.3;
+  const release = 0.4;
+  const sustainDuration = 0.24;
+  const totalDuration = attack + decay + sustainDuration + release;
+  const now = ctx.currentTime;
+
+  masterGain.gain.linearRampToValueAtTime(0.35, now + attack);
+  masterGain.gain.linearRampToValueAtTime(0.35 * sustainLevel, now + attack + decay);
+  masterGain.gain.setValueAtTime(0.35 * sustainLevel, now + attack + decay + sustainDuration);
+  masterGain.gain.linearRampToValueAtTime(0, now + totalDuration);
+
+  const oscillators: OscillatorNode[] = [];
+  for (let i = 0; i < harmonics.length; i++) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = frequency * (i + 1);
+    gain.gain.value = harmonics[i];
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(now);
+    osc.stop(now + totalDuration + 0.05);
+    oscillators.push(osc);
+  }
+
+  playbackActive = true;
+  detectedNote = null;
+  detectedFrequency = null;
+  if (dom.status) dom.status.textContent = "Playing...";
+
+  setTimeout(() => {
+    playbackActive = false;
+    recentPitches.length = 0;
+    pendingNote = null;
+    pendingSince = 0;
+    if (dom.status && listening) dom.status.textContent = "Listening\u2026";
+  }, totalDuration * 1000);
+}
+
 function setClef(nextClef: typeof CLEFS.treble) {
   currentClef = nextClef;
   setPressed(dom.clefTreble, currentClef === CLEFS.treble);
@@ -516,6 +579,9 @@ dom.level4?.addEventListener("click", () => {
 });
 dom.restart?.addEventListener("click", () => {
   setFlow("clef");
+});
+dom.playNote?.addEventListener("click", () => {
+  if (targetNote) playNoteSound(targetNote);
 });
 dom.redo?.addEventListener("click", () => {
   dom.endScreen?.classList.remove("show");

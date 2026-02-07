@@ -381,6 +381,10 @@ export function detectNoteFromSamples(
   return frequencyToNote(frequency);
 }
 
+export function midiToFrequency(midi: number): number {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
 export function generateSineSamples(frequency: number, sampleRate: number, length: number) {
   const samples = new Float64Array(length);
   const step = (Math.PI * 2 * frequency) / sampleRate;

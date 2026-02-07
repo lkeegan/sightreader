@@ -315,7 +315,7 @@ button.ghost {
 
 .session-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 18px;
   align-items: center;
   padding: clamp(14px, 2vw, 22px);
