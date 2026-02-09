@@ -452,7 +452,7 @@ canvas {
   inset: 0;
   display: none;
   place-items: center;
-  background: rgba(255, 255, 255, 0.92);
+  background: transparent;
   z-index: 45;
   overflow: hidden;
 }
@@ -467,6 +467,10 @@ canvas {
   display: grid;
   gap: 18px;
   text-align: center;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 28px;
+  padding: clamp(20px, 4vw, 40px);
+  box-shadow: 0 22px 60px rgba(26, 24, 31, 0.15);
 }
 
 .end-actions {
@@ -501,6 +505,20 @@ canvas {
 .end-text {
   font-size: clamp(2rem, 6vw, 4rem);
   font-weight: 800;
+}
+
+.end-stars {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.end-stats {
+  display: grid;
+  gap: 4px;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .end-overlay .primary {

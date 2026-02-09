@@ -115,6 +115,15 @@ const WRONG_COOLDOWN_MS = 350;
 let currentLevel = 1;
 let notesCompleted = 0;
 const NOTES_PER_SESSION = SESSION.notesPerSession;
+
+interface NoteStat {
+  startTime: number;
+  endTime: number;
+  incorrectAttempts: number;
+}
+let noteStats: NoteStat[] = [];
+let currentNoteStart = 0;
+let currentNoteErrors = 0;
 const isStandalonePwa =
   window.matchMedia?.("(display-mode: standalone)")?.matches ||
   (window.navigator as Navigator & { standalone?: boolean }).standalone;
@@ -143,6 +152,8 @@ function pickRandomNote() {
   const pick = notePool[Math.floor(Math.random() * notePool.length)];
   targetNote = { ...pick };
   flyAway = null;
+  currentNoteStart = performance.now();
+  currentNoteErrors = 0;
   drawStaff();
 }
 
@@ -195,6 +206,11 @@ function triggerCelebration() {
   startFlyAway();
 
   correctCount += 1;
+  noteStats.push({
+    startTime: currentNoteStart,
+    endTime: performance.now(),
+    incorrectAttempts: currentNoteErrors,
+  });
   const nextState = recordCorrectNote({ notesCompleted, matchLock, inputLocked }, NOTES_PER_SESSION);
   notesCompleted = nextState.notesCompleted;
   matchLock = nextState.matchLock;
@@ -223,9 +239,39 @@ function triggerCelebration() {
   }
 }
 
+function computeStars(): number {
+  if (noteStats.length === 0) return 5;
+  const totalErrors = noteStats.reduce((sum, s) => sum + s.incorrectAttempts, 0);
+  const avgTimeMs = noteStats.reduce((sum, s) => sum + (s.endTime - s.startTime), 0) / noteStats.length;
+  const accuracy = 1 - Math.min(totalErrors / (noteStats.length * 2), 1);
+  const speedScore = Math.max(0, Math.min(1, 1 - (avgTimeMs - 2000) / 8000));
+  const combined = accuracy * 0.6 + speedScore * 0.4;
+  return Math.max(1, Math.min(5, Math.round(combined * 5)));
+}
+
 function endSession() {
   matchLock = true;
   inputLocked = true;
+
+  const totalErrors = noteStats.reduce((sum, s) => sum + s.incorrectAttempts, 0);
+  const avgTimeSec = noteStats.length > 0
+    ? noteStats.reduce((sum, s) => sum + (s.endTime - s.startTime), 0) / noteStats.length / 1000
+    : 0;
+  const perfectCount = noteStats.filter(s => s.incorrectAttempts === 0).length;
+  const stars = computeStars();
+
+  const starsEl = dom.endScreen?.querySelector(".end-stars");
+  const statsEl = dom.endScreen?.querySelector(".end-stats");
+  if (starsEl) {
+    starsEl.textContent = "\u2B50".repeat(stars) + "\u2606".repeat(5 - stars);
+  }
+  if (statsEl) {
+    statsEl.innerHTML =
+      `<div>${perfectCount} / ${noteStats.length} first try</div>` +
+      `<div>${totalErrors} wrong note${totalErrors !== 1 ? "s" : ""}</div>` +
+      `<div>${avgTimeSec.toFixed(1)}s avg per note</div>`;
+  }
+
   dom.endScreen?.classList.add("show");
   const end = performance.now() + SESSION.confettiMs;
   const confettiColors = ["#ff3b3b", "#1f7bff", "#ffffff"];
@@ -257,6 +303,9 @@ function startSession() {
   notesCompleted = 0;
   correctCount = 0;
   incorrectCount = 0;
+  noteStats = [];
+  currentNoteStart = 0;
+  currentNoteErrors = 0;
   matchLock = false;
   inputLocked = false;
   flyAway = null;
@@ -449,6 +498,7 @@ function tick() {
         typeof detectedNote.midi === "number" ? detectedNote.midi : noteNameToMidi(detectedNote.name);
       if (midi !== null && (midi !== lastWrongMidi || now - lastWrongAt > WRONG_COOLDOWN_MS)) {
         incorrectCount += 1;
+        currentNoteErrors += 1;
         lastWrongMidi = midi;
         lastWrongAt = now;
         // No warning overlay currently.
