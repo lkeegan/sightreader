@@ -47,22 +47,22 @@ export const CLEFS: { treble: ClefDefinition; bass: ClefDefinition; alto: ClefDe
     name: "Bass",
     symbol: "𝄢",
     baseNote: { letterIndex: 4, octave: 2 }, // G2 on the bottom line.
-    symbolIndex: 6,
-    symbolOffset: -1.5,
+    symbolIndex: 3,
+    symbolOffset: 0.0,
   },
   alto: {
     name: "Alto",
     symbol: "𝄡",
     baseNote: { letterIndex: 3, octave: 3 }, // F3 on the bottom line.
-    symbolIndex: 4, // Middle line = C4.
-    symbolOffset: -0.9,
+    symbolIndex: 2, // Middle line = C4.
+    symbolOffset: 0.1,
   },
   tenor: {
     name: "Tenor",
     symbol: "𝄡",
     baseNote: { letterIndex: 1, octave: 3 }, // D3 on the bottom line.
-    symbolIndex: 6, // 4th line = C4.
-    symbolOffset: -0.9,
+    symbolIndex: 4, // 4th line = C4.
+    symbolOffset: 0.1,
   },
 };
 
