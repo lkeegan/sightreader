@@ -44,8 +44,8 @@
     <link rel="apple-touch-startup-image" href="splash/splash-1170x2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
     <link rel="apple-touch-startup-image" href="splash/splash-1125x2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
     <link rel="apple-touch-startup-image" href="splash/splash-1242x2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" />
-    <script type="module" crossorigin src="/sebis-sight-reader/assets/index-BBQgtcCx.js"></script>
-    <link rel="stylesheet" crossorigin href="/sebis-sight-reader/assets/index-CiPRxJ7m.css">
+    <script type="module" crossorigin src="/sebis-sight-reader/assets/index-56Uvd5KB.js"></script>
+    <link rel="stylesheet" crossorigin href="/sebis-sight-reader/assets/index-B1eOiP2v.css">
   </head>
   <body>
     <div class="app">
@@ -56,8 +56,10 @@
             <img class="flow-image" src="/sebis-sight-reader/assets/monkey-piano.jpg" alt="Monkey at a piano" />
             <div class="flow-title">Choose a clef:</div>
             <div class="clef-toggle">
-              <button id="clef-treble" class="clef-btn active" aria-pressed="true">𝄞</button>
-              <button id="clef-bass" class="clef-btn" aria-pressed="false">𝄢</button>
+              <button id="clef-treble" class="clef-btn clef-with-staff" aria-pressed="true"><span>𝄞</span></button>
+              <button id="clef-bass" class="clef-btn clef-with-staff" aria-pressed="false"><span>𝄢</span></button>
+              <button id="clef-alto" class="clef-btn clef-with-staff" aria-pressed="false"><span>𝄡</span></button>
+              <button id="clef-tenor" class="clef-btn clef-with-staff" aria-pressed="false"><span>𝄡</span></button>
             </div>
           </div>
           <div class="flow-step signature-toggle key-step" role="group" aria-label="Choose key signature">
@@ -90,6 +92,20 @@
                   <span class="sig-mark" style="--x: 0.45em; --y: -0.45em">♭</span>
                 </span>
               </button>
+              <button id="sig-sharp-3" class="sig-btn" aria-pressed="false">
+                <span class="sig-stack sharp">
+                  <span class="sig-mark" style="--x: -0.2em; --y: -0.25em">♯</span>
+                  <span class="sig-mark" style="--x: 0.25em; --y: 0.1em">♯</span>
+                  <span class="sig-mark" style="--x: 0.7em; --y: -0.25em">♯</span>
+                </span>
+              </button>
+              <button id="sig-flat-3" class="sig-btn" aria-pressed="false">
+                <span class="sig-stack flat">
+                  <span class="sig-mark" style="--x: -0.2em; --y: -0.1em">♭</span>
+                  <span class="sig-mark" style="--x: 0.25em; --y: -0.45em">♭</span>
+                  <span class="sig-mark" style="--x: 0.7em; --y: -0.1em">♭</span>
+                </span>
+              </button>
             </div>
           </div>
           <div class="flow-step level-toggle level-step" role="group" aria-label="Choose level">
@@ -111,6 +127,12 @@
       <main class="stage hidden">
         <canvas id="staff" width="900" height="420" aria-label="Music staff"></canvas>
         <div class="celebration" id="celebration" aria-live="polite"></div>
+        <button id="restart-flow" class="stage-icon-btn stage-icon-right" aria-label="Start again">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button id="play-note" class="stage-icon-btn stage-icon-left" aria-label="Hear note">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </button>
       </main>
 
       <footer class="session-bar hidden" id="session-bar">
@@ -120,8 +142,6 @@
             <div class="progress-fill" id="progress-fill"></div>
           </div>
         </div>
-        <button id="play-note" class="ghost" aria-label="Hear note">Hear note</button>
-        <button id="restart-flow" class="ghost">Start again</button>
       </footer>
 
     </div>
@@ -134,6 +154,8 @@
             <img src="/sebis-sight-reader/assets/monkey-celebrate.jpg" alt="Happy monkey" />
           </div>
           <div class="end-text">Well done!</div>
+          <div class="end-stars" aria-label="Star rating"></div>
+          <div class="end-stats"></div>
           <button id="redo-session" class="primary">Play again</button>
         </div>
       </div>

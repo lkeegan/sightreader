@@ -112,6 +112,9 @@ let incorrectCount = 0;
 let lastWrongMidi: number | null = null;
 let lastWrongAt = 0;
 const WRONG_COOLDOWN_MS = 350;
+let carryoverIgnoreMidi: number | null = null;
+let carryoverIgnoreUntil = 0;
+const CARRYOVER_IGNORE_MS = 3000;
 let currentLevel = 1;
 let notesCompleted = 0;
 const NOTES_PER_SESSION = SESSION.notesPerSession;
@@ -148,9 +151,24 @@ function resizeCanvas() {
   drawStaff();
 }
 
+function targetNoteMidi(note: Note | null): number | null {
+  if (!note) return null;
+  const effectiveName = effectiveNoteName(note, keySignature);
+  return effectiveName ? noteNameToMidi(effectiveName) : null;
+}
+
 function pickRandomNote() {
+  const previousTargetMidi = targetNoteMidi(targetNote);
   const pick = notePool[Math.floor(Math.random() * notePool.length)];
   targetNote = { ...pick };
+  const nextTargetMidi = targetNoteMidi(targetNote);
+  if (previousTargetMidi !== null && nextTargetMidi !== null && previousTargetMidi !== nextTargetMidi) {
+    carryoverIgnoreMidi = previousTargetMidi;
+    carryoverIgnoreUntil = performance.now() + CARRYOVER_IGNORE_MS;
+  } else {
+    carryoverIgnoreMidi = null;
+    carryoverIgnoreUntil = 0;
+  }
   flyAway = null;
   currentNoteStart = performance.now();
   currentNoteErrors = 0;
@@ -309,6 +327,8 @@ function startSession() {
   matchLock = false;
   inputLocked = false;
   flyAway = null;
+  carryoverIgnoreMidi = null;
+  carryoverIgnoreUntil = 0;
   notePool = buildNotePool();
   updateProgress();
   pickRandomNote();
@@ -480,6 +500,10 @@ function tick() {
   detectPitch();
 
   const now = performance.now();
+  if (carryoverIgnoreMidi !== null && now > carryoverIgnoreUntil) {
+    carryoverIgnoreMidi = null;
+    carryoverIgnoreUntil = 0;
+  }
   if (celebrationUntil && now > celebrationUntil) {
     dom.celebration?.classList.remove("show");
   }
@@ -496,12 +520,22 @@ function tick() {
     } else {
       const midi =
         typeof detectedNote.midi === "number" ? detectedNote.midi : noteNameToMidi(detectedNote.name);
-      if (midi !== null && (midi !== lastWrongMidi || now - lastWrongAt > WRONG_COOLDOWN_MS)) {
-        incorrectCount += 1;
-        currentNoteErrors += 1;
-        lastWrongMidi = midi;
-        lastWrongAt = now;
-        // No warning overlay currently.
+      if (midi !== null) {
+        if (carryoverIgnoreMidi !== null && midi === carryoverIgnoreMidi) {
+          // Ignore lingering audio from the previous correct note after the next note appears.
+        } else {
+          if (carryoverIgnoreMidi !== null && midi !== carryoverIgnoreMidi) {
+            carryoverIgnoreMidi = null;
+            carryoverIgnoreUntil = 0;
+          }
+          if (midi !== lastWrongMidi || now - lastWrongAt > WRONG_COOLDOWN_MS) {
+            incorrectCount += 1;
+            currentNoteErrors += 1;
+            lastWrongMidi = midi;
+            lastWrongAt = now;
+            // No warning overlay currently.
+          }
+        }
       }
     }
   }

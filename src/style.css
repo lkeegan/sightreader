@@ -92,7 +92,7 @@ body {
 
 .clef-toggle {
   display: grid;
-  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(10px, 1.6vw, 16px);
   grid-column: 1 / -1;
 }
@@ -171,6 +171,16 @@ body {
 }
 
 @media (max-width: 720px) {
+  .clef-toggle {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .clef-btn {
+    width: 100%;
+  }
+
   .level-buttons {
     grid-template-columns: repeat(2, minmax(90px, 1fr));
   }
@@ -597,7 +607,7 @@ canvas {
     justify-items: stretch;
   }
 
-  button:not(.sig-btn) {
+  .controls button:not(.sig-btn) {
     width: 100%;
   }
 }

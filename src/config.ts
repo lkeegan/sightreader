@@ -93,7 +93,7 @@ export const KEY_SIGNATURE_POSITIONS: {
 export const AUDIO_CONFIG: AudioConfig = {
   fftSize: 4096,
   smoothing: 0.8,
-  minHoldMs: 25,
+  minHoldMs: 250,
   minPitchHz: 27.5,
   maxPitchHz: 4186,
   octaveTolerance: 0.03,
